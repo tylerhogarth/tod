@@ -1,6 +1,6 @@
 {
   "name": "tod-ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An operator harness that turns any AGENTS.md-compatible coding agent into a software factory for non-technical builders.",
   "license": "MIT",
   "type": "module",
