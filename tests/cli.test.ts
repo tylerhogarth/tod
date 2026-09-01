@@ -16,7 +16,7 @@ describe("tod --help", () => {
   test("exits 0 and lists every command with when-to-use guidance", () => {
     const { code, stdout } = runCli("--help");
     expect(code).toBe(0);
-    for (const command of ["init", "sync", "status"]) {
+    for (const command of ["init", "sync", "status", "work", "log", "config"]) {
       expect(stdout).toContain(command);
     }
     expect(stdout).toContain("Use when");
@@ -49,19 +49,13 @@ describe("unknown command", () => {
 });
 
 describe("command help", () => {
-  test.each(["init", "sync", "status"])("tod %s --help exits 0", (command) => {
-    const { code, stdout } = runCli(command, "--help");
-    expect(code).toBe(0);
-    expect(stdout).toContain(`tod ${command}`);
-    expect(stdout).toContain("Use");
-  });
-});
-
-describe("unimplemented commands", () => {
-  test("tod status fails with guidance", () => {
-    const { code, stderr } = runCli("status");
-    expect(code).toBe(1);
-    expect(stderr).toContain("not implemented");
-    expect(stderr).toContain("fix:");
-  });
+  test.each(["init", "sync", "status", "work", "log", "config"])(
+    "tod %s --help exits 0",
+    (command) => {
+      const { code, stdout } = runCli(command, "--help");
+      expect(code).toBe(0);
+      expect(stdout).toContain(`tod ${command}`);
+      expect(stdout).toContain("Use");
+    },
+  );
 });
