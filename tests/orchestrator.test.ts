@@ -80,7 +80,29 @@ describe("tod work", () => {
     const after = runCli(home, "status");
     expect(after.stdout).toContain("2 items in flight");
     expect(after.stdout).not.toContain("Fix crash");
-    expect(runCli(home, "status", "--all").stdout).toContain("Fix crash");
+
+    const all = runCli(home, "status", "--all");
+    expect(all.stdout).toContain("2 items in flight, 1 done");
+    expect(all.stdout).toContain("Fix crash");
+  });
+
+  test("status subcommand moves items and accepts ids with the '#' prefix", () => {
+    const moved = runCli(home, "work", "status", "#1", "in-progress");
+    expect(moved.code).toBe(0);
+    expect(moved.stdout).toContain("#1 'Onboarding flow' is now in-progress");
+    expect(runCli(home, "work", "list").stdout).toContain("#1 feature in-progress");
+  });
+
+  test("non-numeric ids fail with the id format, not a bare usage string", () => {
+    for (const args of [
+      ["work", "status", "w1", "in-progress"],
+      ["work", "done", "w2"],
+    ]) {
+      const { code, stderr } = runCli(home, ...args);
+      expect(code).toBe(2);
+      expect(stderr).toContain("item ids are numbers, with or without the '#'");
+      expect(stderr).toContain(`'${args[2]}'`);
+    }
   });
 
   test("done is idempotent and reports unchanged", () => {
@@ -153,34 +175,38 @@ describe("tod config", () => {
   });
 
   test("get prints settings and set changes them", () => {
-    expect(JSON.parse(runCli(home, "config", "get").stdout).communication.technicality).toBe(
-      "non-technical",
-    );
+    expect(JSON.parse(runCli(home, "config", "get").stdout).requirementGathering).toBe(3);
 
-    const set = runCli(home, "config", "set", "communication.technicality", "technical");
+    const set = runCli(home, "config", "set", "requirement-gathering", "5");
     expect(set.code).toBe(0);
     expect(set.stdout).toContain("tod sync");
-    expect(JSON.parse(runCli(home, "config", "get").stdout).communication.technicality).toBe(
-      "technical",
-    );
+    expect(JSON.parse(runCli(home, "config", "get").stdout).requirementGathering).toBe(5);
   });
 
   test("sync renders changed settings into instruction blocks", () => {
     expect(runCli(home, "sync").code).toBe(0);
     const agents = readFileSync(join(home, ".agents", "AGENTS.md"), "utf8");
-    expect(agents).toContain("engineer-to-engineer");
+    expect(agents).toContain("Requirement gathering (set to 5 of 5)");
+    expect(agents).toContain("before any implementation");
   });
 
   test("setting the same value again reports unchanged", () => {
-    const again = runCli(home, "config", "set", "communication.technicality", "technical");
+    const again = runCli(home, "config", "set", "requirement-gathering", "5");
     expect(again.code).toBe(0);
     expect(again.stdout).toContain("unchanged");
   });
 
-  test("rejects invalid values with the allowed list", () => {
-    const { code, stderr } = runCli(home, "config", "set", "communication.detail", "verbose");
+  test("rejects values off the 1-5 scale", () => {
+    const { code, stderr } = runCli(home, "config", "set", "response-detail", "7");
     expect(code).toBe(2);
     expect(stderr).toContain("allowed values");
-    expect(stderr).toContain("concise");
+    expect(stderr).toContain("1 to 5");
+  });
+
+  test("rejects unknown keys and names the settable ones", () => {
+    const { code, stderr } = runCli(home, "config", "set", "communication.tone", "terse");
+    expect(code).toBe(2);
+    expect(stderr).toContain("requirement-gathering");
+    expect(stderr).toContain("response-detail");
   });
 });

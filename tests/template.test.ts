@@ -1,19 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import { type Config, configSchema, defaultConfig } from "../src/config.ts";
+import { type Config, defaultConfig, type Scale } from "../src/config.ts";
 import { renderBlock } from "../src/template.ts";
 
-const SIZE_BUDGET_BYTES = 8 * 1024;
+const SIZE_BUDGET_BYTES = 4 * 1024;
+const SCALE: readonly Scale[] = [1, 2, 3, 4, 5];
 
 function allConfigs(): Config[] {
-  const shape = configSchema.shape.communication.shape;
   const configs: Config[] = [];
-  for (const technicality of shape.technicality.options) {
-    for (const detail of shape.detail.options) {
-      for (const focus of shape.focus.options) {
-        for (const tone of shape.tone.options) {
-          configs.push({ version: 1, communication: { technicality, detail, focus, tone } });
-        }
-      }
+  for (const requirementGathering of SCALE) {
+    for (const responseDetail of SCALE) {
+      configs.push({ version: 2, requirementGathering, responseDetail });
     }
   }
   return configs;
@@ -22,13 +18,17 @@ function allConfigs(): Config[] {
 describe("renderBlock content", () => {
   const block = renderBlock(defaultConfig);
 
-  test("carries every required harness section", () => {
+  test("carries every required section", () => {
     for (const heading of [
       "# tod: operator harness",
-      "## Operator memory",
-      "## Communication",
-      "### Writing style",
-      "## Your role: the operator's team",
+      "## Tod persona",
+      "## Session start",
+      "## Precedence",
+      "## The operator is non-technical",
+      "## Requirement gathering",
+      "## Response detail",
+      "## Reconfiguration",
+      "## Writing style",
       "## Work tracking",
       "## Git safety",
       "## tod-managed files",
@@ -37,11 +37,37 @@ describe("renderBlock content", () => {
     }
   });
 
-  test("directs the agent through onboarding", () => {
-    expect(block).toContain("onboarding");
-    expect(block).toContain("~/.tod/operator.md");
-    expect(block).toContain("capability gaps");
-    expect(block).toContain("tod config set");
+  test("explains what tod is and maps requests to tod commands and skills", () => {
+    expect(block).toContain("operator harness layered on top of you");
+    expect(block).toContain("operating layer, not documentation");
+    expect(block).toContain("tod CLI command or tod skill");
+  });
+
+  test("defines the Tod persona", () => {
+    expect(block).toContain("lively product engineer");
+    expect(block).toContain("concise and friendly");
+    expect(block).toContain("interact as Tod");
+  });
+
+  test("offers tod per session instead of assuming it is active", () => {
+    expect(block).toContain("Are we building with Tod today?");
+    expect(block).toContain("operate normally");
+  });
+
+  test("defers to higher-priority instructions", () => {
+    expect(block).toContain("take precedence over this block");
+  });
+
+  test("assumes a non-technical operator at every setting", () => {
+    expect(block).toContain("non-technical at every setting");
+    expect(block).toContain("non-technical client");
+    expect(block).toContain("without jargon");
+  });
+
+  test("makes reconfiguration discoverable and never silent", () => {
+    expect(block).toContain("tod can be reconfigured");
+    expect(block).toContain("`tod init` again");
+    expect(block).toContain("Never change `~/.tod/config.json` from inferred behaviour");
   });
 
   test("directs the agent to the deterministic CLI, never hand-edits", () => {
@@ -57,22 +83,10 @@ describe("renderBlock content", () => {
     expect(block).toContain("separate versions");
   });
 
-  test("composes the virtual team from capability gaps", () => {
-    for (const role of [
-      "product manager",
-      "engineering manager",
-      "software engineer",
-      "architect",
-    ]) {
-      expect(block).toContain(role);
-    }
-    expect(block).toContain("one voice");
-  });
-
   test("sets the operator-facing writing rules", () => {
     expect(block).toContain("Never use em dashes");
     expect(block).toContain("Lead with the answer");
-    expect(block).toContain("One idea per sentence");
+    expect(block).toContain("one idea per sentence");
     expect(block).toContain("international English");
   });
 
@@ -84,20 +98,31 @@ describe("renderBlock content", () => {
 });
 
 describe("renderBlock configuration", () => {
-  test("communication dimensions change the rendered rules", () => {
-    const nonTechnical = renderBlock(defaultConfig);
-    const technical = renderBlock({
-      version: 1,
-      communication: {
-        technicality: "technical",
-        detail: "concise",
-        focus: "implementation",
-        tone: "terse",
-      },
-    });
-    expect(technical).not.toBe(nonTechnical);
-    expect(technical).toContain("engineer-to-engineer");
-    expect(nonTechnical).toContain("non-technical");
+  test("requirement gathering scales from eager to pushy", () => {
+    const eager = renderBlock({ ...defaultConfig, requirementGathering: 1 });
+    const pushy = renderBlock({ ...defaultConfig, requirementGathering: 5 });
+    expect(eager).toContain("Requirement gathering (set to 1 of 5)");
+    expect(eager).toContain("make reasonable assumptions, and start building");
+    expect(pushy).toContain("Requirement gathering (set to 5 of 5)");
+    expect(pushy).toContain("before any implementation");
+  });
+
+  test("response detail scales from concise to detailed", () => {
+    const concise = renderBlock({ ...defaultConfig, responseDetail: 1 });
+    const detailed = renderBlock({ ...defaultConfig, responseDetail: 5 });
+    expect(concise).toContain("Response detail (set to 1 of 5)");
+    expect(concise).toContain("Skip mechanism and background");
+    expect(detailed).toContain("Response detail (set to 5 of 5)");
+    expect(detailed).toContain("why each decision was made");
+  });
+
+  test("rendering is deterministic and every configuration is distinct", () => {
+    const configs = allConfigs();
+    const blocks = configs.map(renderBlock);
+    expect(new Set(blocks).size).toBe(configs.length);
+    for (const [index, config] of configs.entries()) {
+      expect(renderBlock(config)).toBe(blocks[index] as string);
+    }
   });
 
   test("every configuration stays inside the size budget", () => {

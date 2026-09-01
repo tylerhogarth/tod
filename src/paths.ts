@@ -1,5 +1,17 @@
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+
+/**
+ * All tod paths derive from a single home root. TOD_HOME redirects that root
+ * (for example to a repo-local output/ folder) so a test session recreates
+ * the operator's file structure without touching the real home directory.
+ * The boundary allowlist derives from the same root, so writes stay confined
+ * under the override. Unset or empty means the operator's home directory.
+ */
+export function resolveHome(env: Record<string, string | undefined> = process.env): string {
+  const override = env.TOD_HOME;
+  return override !== undefined && override.trim() !== "" ? resolve(override) : homedir();
+}
 
 export interface TodPaths {
   home: string;
@@ -10,7 +22,7 @@ export interface TodPaths {
   logFile: string;
 }
 
-export function todPaths(home: string = homedir()): TodPaths {
+export function todPaths(home: string = resolveHome()): TodPaths {
   const todDir = join(home, ".tod");
   return {
     home,
@@ -35,7 +47,7 @@ export interface AgentTarget {
  * Integration is one marker block per agent's global instruction file.
  * Adding support for another agent means adding an entry here.
  */
-export function agentTargets(home: string = homedir()): readonly AgentTarget[] {
+export function agentTargets(home: string = resolveHome()): readonly AgentTarget[] {
   return [
     {
       name: "AGENTS.md standard (Codex, opencode, and others)",

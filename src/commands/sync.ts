@@ -1,6 +1,6 @@
-import { homedir } from "node:os";
 import { installHarness } from "../harness.ts";
 import { EXIT } from "../output.ts";
+import { resolveHome } from "../paths.ts";
 import { formatError, harnessErrorToAgentError, renderReport } from "./harness-io.ts";
 import type { Command } from "./index.ts";
 
@@ -13,7 +13,7 @@ marker blocks and tod-owned structural files; operator memory, work state,
 the log, and all content outside the markers are never modified. Idempotent.
 `,
   execute: async () => {
-    const home = homedir();
+    const home = resolveHome();
     const result = installHarness(home, "sync");
     return result.match({
       ok: (report) => {

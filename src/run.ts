@@ -12,9 +12,9 @@ deterministic, idempotent, and refuse unsafe writes.
 usage: tod <command> [flags]
 
 commands:
-  init    Install the tod harness for this user. Use when tod is not set up
-          yet: creates ~/.tod/ state and adds tod's instruction block to each
-          agent's global instruction file.
+  init    Install the tod harness and run the two-question onboarding wizard.
+          Use for first-time setup and whenever the operator wants to
+          reconfigure tod.
   sync    Re-render tod's instruction blocks and repair ~/.tod structure. Use
           after tod-managed content was edited, deleted, or looks wrong.
   status  Report work in flight across all projects. Use when the operator
@@ -22,8 +22,8 @@ commands:
   work    Record and update features, bugs, and tasks. Use instead of ever
           hand-editing work state.
   log     Append a notable event to the activity log. Append-only.
-  config  Read or change settings such as communication style; follow with
-          'tod sync' to apply.
+  config  Read or change the requirement-gathering and response-detail
+          settings; follow with 'tod sync' to apply.
 
 Run 'tod <command> --help' for when-to-use guidance and flags.
 exit codes: 0 success · 1 failure (the message states the fix) · 2 usage error

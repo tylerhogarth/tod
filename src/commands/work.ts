@@ -1,8 +1,7 @@
-import { homedir } from "node:os";
 import { parseArgs } from "node:util";
 import { defaultAllowedRoots } from "../boundary.ts";
 import { EXIT, formatError } from "../output.ts";
-import { todPaths } from "../paths.ts";
+import { resolveHome, todPaths } from "../paths.ts";
 import { addItem, loadWorkState, saveWorkState, setStatus } from "../work.ts";
 import { harnessErrorToAgentError, tildify } from "./harness-io.ts";
 import type { Command } from "./index.ts";
@@ -37,10 +36,16 @@ function usage(why: string): number {
   return EXIT.usage;
 }
 
+/** Ids print as '#1', so accept them back with or without the '#'. */
+function parseId(raw: string): number | null {
+  const parsed = Number(raw.replace(/^#/, ""));
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 export const work: Command = {
   help: HELP,
   execute: async (args) => {
-    const home = homedir();
+    const home = resolveHome();
     const paths = todPaths(home);
     const roots = defaultAllowedRoots(home);
     const [sub, ...rest] = args;
@@ -78,9 +83,11 @@ export const work: Command = {
       if (kind !== "feature" && kind !== "bug" && kind !== "task") {
         return usage(`--kind must be feature, bug, or task (got '${kind}')`);
       }
-      const parent = parsed.values.parent === undefined ? undefined : Number(parsed.values.parent);
-      if (parent !== undefined && !Number.isInteger(parent)) {
-        return usage(`--parent must be an item id (got '${parsed.values.parent}')`);
+      const parent = parsed.values.parent === undefined ? undefined : parseId(parsed.values.parent);
+      if (parent === null) {
+        return usage(
+          `--parent must be an item id, a number with or without the '#' (got '${parsed.values.parent}')`,
+        );
       }
       const added = addItem(state, {
         project,
@@ -109,14 +116,21 @@ export const work: Command = {
     if (sub === "done" || sub === "status") {
       const targetStatus =
         sub === "done" ? "done" : (rest[1] as "open" | "in-progress" | "done" | undefined);
-      const ids = (sub === "done" ? rest : rest.slice(0, 1)).map(Number);
-      if (ids.length === 0 || ids.some((id) => !Number.isInteger(id))) {
+      const rawIds = sub === "done" ? rest : rest.slice(0, 1);
+      if (rawIds.length === 0) {
         return usage(
           sub === "done"
-            ? "at least one numeric item id is required: tod work done <id> [<id> ...]"
-            : "usage: tod work status <id> <open|in-progress|done>",
+            ? "at least one item id is required: tod work done <id> [<id> ...]"
+            : "an item id is required: tod work status <id> <open|in-progress|done>",
         );
       }
+      const invalid = rawIds.filter((raw) => parseId(raw) === null);
+      if (invalid.length > 0) {
+        return usage(
+          `item ids are numbers, with or without the '#' (got '${invalid.join("', '")}'); run 'tod work list' to see ids`,
+        );
+      }
+      const ids = rawIds.map((raw) => parseId(raw) as number);
       if (sub === "status" && !["open", "in-progress", "done"].includes(targetStatus ?? "")) {
         return usage("status must be open, in-progress, or done");
       }

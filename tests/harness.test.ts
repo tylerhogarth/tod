@@ -87,8 +87,30 @@ describe("tod init", () => {
     expect(second.code).toBe(0);
     expect(second.stdout).not.toContain("created");
     expect(second.stdout).not.toContain("updated");
+    for (const file of ["config.json", "operator.md", "work.json", "log.jsonl"]) {
+      expect(second.stdout).toContain(`unchanged ~/.tod/${file}`);
+    }
     expect(read(home, ".agents", "AGENTS.md")).toBe(agentsBefore);
     expect(read(home, ".tod", "operator.md")).toBe(operatorBefore);
+  });
+
+  test("every run ends with the two-question onboarding wizard", () => {
+    const home = makeHome({ agents: "", claude: "" });
+    const first = runCli(home, "init");
+    const second = runCli(home, "init");
+    for (const { stdout } of [first, second]) {
+      expect(stdout).toContain("onboarding");
+      expect(stdout).toContain("as Tod, verbatim");
+      expect(stdout).toContain("single\nmessage with both questions");
+      expect(stdout).toContain("Hi, I'm Tod.");
+      expect(stdout).toContain("how persistent should I be");
+      expect(stdout).toContain("how detailed should I be");
+      expect(stdout).toContain("tod config set requirement-gathering");
+      expect(stdout).toContain("tod config set response-detail");
+      expect(stdout).toContain("tod sync");
+      expect(stdout).not.toContain("technical proficiency");
+      expect(stdout).not.toContain("—");
+    }
   });
 });
 

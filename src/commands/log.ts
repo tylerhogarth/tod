@@ -1,9 +1,8 @@
 import { appendFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { parseArgs } from "node:util";
 import { defaultAllowedRoots, describeBoundary, isWriteAllowed } from "../boundary.ts";
 import { EXIT, formatError } from "../output.ts";
-import { todPaths } from "../paths.ts";
+import { resolveHome, todPaths } from "../paths.ts";
 import { tildify } from "./harness-io.ts";
 import type { Command } from "./index.ts";
 
@@ -17,7 +16,7 @@ fixed). One line per event. The log is append-only; nothing rewrites it.
 usage: tod log <message> [--project <name>]
 `,
   execute: async (args) => {
-    const home = homedir();
+    const home = resolveHome();
     const paths = todPaths(home);
     const roots = defaultAllowedRoots(home);
 

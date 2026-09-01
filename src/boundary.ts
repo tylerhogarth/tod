@@ -1,6 +1,6 @@
 import { existsSync, realpathSync } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, resolve, sep } from "node:path";
+import { resolveHome } from "./paths.ts";
 
 /**
  * tod runs on the machines of non-technical operators. Every filesystem write
@@ -9,7 +9,7 @@ import { dirname, resolve, sep } from "node:path";
  * write to disk without passing through it.
  */
 
-export function defaultAllowedRoots(home: string = homedir()): readonly string[] {
+export function defaultAllowedRoots(home: string = resolveHome()): readonly string[] {
   return [resolve(home, ".agents"), resolve(home, ".claude"), resolve(home, ".tod")];
 }
 
