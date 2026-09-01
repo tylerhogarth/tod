@@ -38,7 +38,7 @@ Manual (dogfood pass, recorded in the M4 close-out):
 
 ### Implement M1: Repository foundation and CLI skeleton
 
-Status: ► In progress (code complete; awaiting CI green on the PR)
+Status: ✓ Complete (CI green on PR #1)
 
 _Outcomes_
 The tod repo builds and tests green in CI. `tod --help` runs locally and routes to stub `init`, `new`, `sync`, and `status` commands. Package metadata publishes as `tod-ai` with a `tod` binary.
