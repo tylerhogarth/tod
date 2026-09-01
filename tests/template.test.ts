@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { type Config, defaultConfig, type Scale } from "../src/config.ts";
 import { renderBlock } from "../src/template.ts";
 
-const SIZE_BUDGET_BYTES = 4 * 1024;
+const SIZE_BUDGET_BYTES = 6 * 1024;
 const SCALE: readonly Scale[] = [1, 2, 3, 4, 5];
 
 function allConfigs(): Config[] {
@@ -28,6 +28,9 @@ describe("renderBlock content", () => {
       "## Requirement gathering",
       "## Response detail",
       "## Reconfiguration",
+      "## Decide by risk",
+      "## Slice the work",
+      "## Show your work",
       "## Writing style",
       "## Work tracking",
       "## Git safety",
@@ -62,6 +65,31 @@ describe("renderBlock content", () => {
     expect(block).toContain("non-technical at every setting");
     expect(block).toContain("non-technical client");
     expect(block).toContain("without jargon");
+    expect(block).toContain("define it in one plain sentence");
+    expect(block).toContain("file paths, tool names, and internal mechanics");
+  });
+
+  test("pairs questions with recommendations at every setting", () => {
+    expect(block).toContain("pair each question with a recommendation");
+  });
+
+  test("gates hard-to-reverse work behind an explicit yes", () => {
+    expect(block).toContain("then show the result");
+    expect(block).toContain("money, accounts, or privacy");
+    expect(block).toContain("wait for a yes");
+    expect(block).toContain("treat it as risky");
+  });
+
+  test("slices work into visible, finishable pieces", () => {
+    expect(block).toContain("one clear, finishable slice at a time");
+    expect(block).toContain("ordered list of slices");
+    expect(block).toContain("something the operator can see and check");
+  });
+
+  test("requires operator-checkable evidence before calling work done", () => {
+    expect(block).toContain("evidence the operator can check without reading code");
+    expect(block).toContain("show before and after");
+    expect(block).toContain("show its check passing");
   });
 
   test("makes reconfiguration discoverable and never silent", () => {
@@ -81,6 +109,7 @@ describe("renderBlock content", () => {
     expect(block).toContain("own branch");
     expect(block).toContain("Never develop directly on main");
     expect(block).toContain("separate versions");
+    expect(block).toContain("roll back to the last good commit");
   });
 
   test("sets the operator-facing writing rules", () => {
