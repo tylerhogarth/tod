@@ -1,0 +1,40 @@
+# Publishes to npm via trusted publishing (OIDC): no npm token is stored in
+# the repo. Requires the tod-ai package on npmjs.com to have a trusted
+# publisher configured for this repository and this workflow file. The first
+# release must be published manually; configure the trusted publisher after.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or newer.
+      - run: npm install -g npm@latest
+      - run: bun install --frozen-lockfile
+      - name: Check tag matches package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "tag v$tag does not match package.json version $version"
+            exit 1
+          fi
+      # prepublishOnly runs the checks and the node-target build. Provenance
+      # is attached automatically when publishing via trusted publishing.
+      - run: npm publish
