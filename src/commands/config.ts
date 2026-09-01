@@ -15,7 +15,7 @@ function optionsFor(key: Settable): readonly string[] {
 }
 
 export const config: Command = {
-  help: `tod config — read and change tod settings
+  help: `tod config: read and change tod settings
 
 Use to set the communication dimensions during onboarding and whenever
 the operator asks for a different style, then run 'tod sync' so instruction

@@ -5,7 +5,7 @@ import { formatError, harnessErrorToAgentError, renderReport } from "./harness-i
 import type { Command } from "./index.ts";
 
 export const init: Command = {
-  help: `tod init — install the tod harness for this user
+  help: `tod init: install the tod harness for this user
 
 Use when tod is not set up yet. Creates ~/.tod/ (settings, operator memory,
 work state, log) and appends tod's delimited instruction block to each

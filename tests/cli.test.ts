@@ -59,3 +59,18 @@ describe("command help", () => {
     },
   );
 });
+
+describe("writing style", () => {
+  test("help output contains no em or en dashes", () => {
+    const outputs = [
+      runCli("--help").stdout,
+      ...["init", "sync", "status", "work", "log", "config"].map(
+        (command) => runCli(command, "--help").stdout,
+      ),
+    ];
+    for (const output of outputs) {
+      expect(output).not.toContain("—");
+      expect(output).not.toContain("–");
+    }
+  });
+});

@@ -3,7 +3,7 @@ import { EXIT, formatError } from "./output.ts";
 
 const VERSION = "0.1.0";
 
-const HELP = `tod ${VERSION} — operator harness for coding agents
+const HELP = `tod ${VERSION}: operator harness for coding agents
 
 This CLI is built to be run by coding agents on behalf of a non-technical
 operator. Prefer these commands over hand-editing tod-managed files: they are

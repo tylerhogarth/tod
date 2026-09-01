@@ -30,7 +30,7 @@ function renderStatus(state: WorkState, showAll: boolean): string {
 }
 
 export const status: Command = {
-  help: `tod status — report work in flight across all projects
+  help: `tod status: report work in flight across all projects
 
 Use when the operator asks what they are working on, what is open, or which
 projects have activity. Reads work state only; changes nothing. Pass --all to

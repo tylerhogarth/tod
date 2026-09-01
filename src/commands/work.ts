@@ -7,7 +7,7 @@ import { addItem, loadWorkState, saveWorkState, setStatus } from "../work.ts";
 import { harnessErrorToAgentError, tildify } from "./harness-io.ts";
 import type { Command } from "./index.ts";
 
-const HELP = `tod work — record and update the operator's work
+const HELP = `tod work: record and update the operator's work
 
 For agents: keep work state truthful so any session can answer "what is in
 flight?". Never edit ~/.tod/work.json by hand; use these subcommands.

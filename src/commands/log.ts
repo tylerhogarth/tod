@@ -8,7 +8,7 @@ import { tildify } from "./harness-io.ts";
 import type { Command } from "./index.ts";
 
 export const log: Command = {
-  help: `tod log — append an entry to the operator's activity log
+  help: `tod log: append an entry to the operator's activity log
 
 Use when something notable happens that the operator or a future
 session would want to know (a feature shipped, a decision made, a problem

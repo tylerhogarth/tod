@@ -27,6 +27,7 @@ describe("renderBlock content", () => {
       "# tod: operator harness",
       "## Operator memory",
       "## Communication",
+      "### Writing style",
       "## Your role: the operator's team",
       "## Work tracking",
       "## Git safety",
@@ -68,6 +69,13 @@ describe("renderBlock content", () => {
     expect(block).toContain("one voice");
   });
 
+  test("sets the operator-facing writing rules", () => {
+    expect(block).toContain("Never use em dashes");
+    expect(block).toContain("Lead with the answer");
+    expect(block).toContain("One idea per sentence");
+    expect(block).toContain("international English");
+  });
+
   test("keeps tod's implementation stack out of operator instructions", () => {
     for (const leak of ["Bun", "TypeScript", "Biome", "zod", "better-result"]) {
       expect(block).not.toContain(leak);
@@ -95,6 +103,14 @@ describe("renderBlock configuration", () => {
   test("every configuration stays inside the size budget", () => {
     for (const config of allConfigs()) {
       expect(Buffer.byteLength(renderBlock(config), "utf8")).toBeLessThan(SIZE_BUDGET_BYTES);
+    }
+  });
+
+  test("no configuration renders an em or en dash", () => {
+    for (const config of allConfigs()) {
+      const block = renderBlock(config);
+      expect(block).not.toContain("—");
+      expect(block).not.toContain("–");
     }
   });
 });

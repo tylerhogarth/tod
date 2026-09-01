@@ -5,7 +5,7 @@ import { formatError, harnessErrorToAgentError, renderReport } from "./harness-i
 import type { Command } from "./index.ts";
 
 export const sync: Command = {
-  help: `tod sync — re-render tod's instruction blocks and repair state
+  help: `tod sync: re-render tod's instruction blocks and repair state
 
 Use after tod-managed content was edited, deleted, or looks wrong, or after
 changing settings with 'tod config'. Only touches content inside tod's own
