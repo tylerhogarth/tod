@@ -9,12 +9,12 @@ function makeHome(): string {
 }
 
 describe("defaultAllowedRoots", () => {
-  test("covers only the agents, claude, and todai folders under home", () => {
+  test("covers only the .agents, .claude, and .tod folders under home", () => {
     const roots = defaultAllowedRoots("/home/operator");
     expect(roots).toEqual([
-      "/home/operator/agents",
-      "/home/operator/claude",
-      "/home/operator/todai",
+      "/home/operator/.agents",
+      "/home/operator/.claude",
+      "/home/operator/.tod",
     ]);
   });
 });
@@ -23,7 +23,7 @@ describe("isWriteAllowed", () => {
   test("allows a path inside an allowed root, even before it exists", () => {
     const home = makeHome();
     const roots = defaultAllowedRoots(home);
-    expect(isWriteAllowed(join(home, "todai", "workspace", "AGENTS.md"), roots)).toBe(true);
+    expect(isWriteAllowed(join(home, ".tod", "work.json"), roots)).toBe(true);
   });
 
   test("rejects a path outside every root", () => {
@@ -40,22 +40,22 @@ describe("isWriteAllowed", () => {
   test("rejects a sibling whose name shares a prefix with a root", () => {
     const home = makeHome();
     const roots = defaultAllowedRoots(home);
-    expect(isWriteAllowed(join(home, "todai-evil", "x.md"), roots)).toBe(false);
+    expect(isWriteAllowed(join(home, ".tod-evil", "x.md"), roots)).toBe(false);
   });
 
   test("rejects a symlink that escapes an allowed root", () => {
     const home = makeHome();
     const outside = mkdtempSync(join(tmpdir(), "tod-outside-"));
     const roots = defaultAllowedRoots(home);
-    mkdirSync(join(home, "todai"), { recursive: true });
-    symlinkSync(outside, join(home, "todai", "escape"));
-    expect(isWriteAllowed(join(home, "todai", "escape", "x.md"), roots)).toBe(false);
+    mkdirSync(join(home, ".tod"), { recursive: true });
+    symlinkSync(outside, join(home, ".tod", "escape"));
+    expect(isWriteAllowed(join(home, ".tod", "escape", "x.md"), roots)).toBe(false);
   });
 
-  test("allows an operator-designated project directory", () => {
+  test("rejects a project directory: tod never writes into project folders", () => {
     const home = makeHome();
     const project = mkdtempSync(join(tmpdir(), "tod-project-"));
     const roots = defaultAllowedRoots(home);
-    expect(isWriteAllowed(join(project, "AGENTS.md"), roots, [project])).toBe(true);
+    expect(isWriteAllowed(join(project, "AGENTS.md"), roots)).toBe(false);
   });
 });

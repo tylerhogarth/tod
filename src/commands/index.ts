@@ -1,5 +1,4 @@
 import { init } from "./init.ts";
-import { newProject } from "./new.ts";
 import { status } from "./status.ts";
 import { sync } from "./sync.ts";
 
@@ -11,7 +10,6 @@ export interface Command {
 
 export const commands: Readonly<Record<string, Command>> = {
   init,
-  new: newProject,
   sync,
   status,
 };

@@ -26,7 +26,7 @@ An operator harness CLI for coding agents, built with Bun and TypeScript. There 
 
 ## Operator-system safety (highest priority)
 
-- tod runs on the machines of non-technical operators. Every filesystem write must pass `isWriteAllowed` in `src/boundary.ts`. User-level writes are confined to `~/agents/`, `~/claude/`, and `~/todai/`, plus operator-designated project directories.
+- tod runs on the machines of non-technical operators. Every filesystem write must pass `isWriteAllowed` in `src/boundary.ts`. Writes are confined to `~/.agents/`, `~/.claude/`, and `~/.tod/`. tod never writes into project folders.
 - Never add a write path that bypasses `src/boundary.ts`. Extend the allowlist there and nowhere else.
 - Containment is checked after symlink resolution; a symlink that escapes the allowlist is refused.
 - Never delete or overwrite a file tod did not create. No recursive deletes outside tod-owned state.
@@ -36,8 +36,7 @@ An operator harness CLI for coding agents, built with Bun and TypeScript. There 
 
 ## Non-destructive edits
 
-- tod-owned state lives in `todai/` directories. In shared files (an operator's existing AGENTS.md or CLAUDE.md), tod owns only its delimited marker block: append the block if absent, rewrite only inside the markers, never touch surrounding content.
-- If a file tod would create already exists (for example a real CLAUDE.md where tod wants a symlink), keep it and fall back to the marker-block strategy. Never replace it.
+- tod-owned state lives in `~/.tod/`. In shared files (the operator's global `~/.agents/AGENTS.md` or `~/.claude/CLAUDE.md`), tod owns only its delimited marker block: append the block if absent, rewrite only inside the markers, never touch surrounding content.
 - Every mutation is idempotent: running the same command twice produces identical file state.
 
 ## Determinism first

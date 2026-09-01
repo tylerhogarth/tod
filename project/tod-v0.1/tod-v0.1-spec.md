@@ -2,7 +2,7 @@
 
 # Summary
 
-tod is an open-source CLI that turns any AGENTS.md-compatible coding agent into a software factory for non-technical builders. It owns the canonical agent instructions, an operator memory, and cross-project work state, all inside a single workspace directory that the operator's agent reads. tod is an operator harness: it has opinions about process (branching, work tracking, how the agent treats the operator) but never writes application code, never scaffolds projects, and never deploys. It guides the existing agent; that is all.
+tod is an open-source CLI that turns any AGENTS.md-compatible coding agent into a software factory for non-technical builders. It installs an operator harness at the user level: a delimited instruction block inside the agent's own global instruction file, plus operator memory, work state, and an activity log in `~/.tod/`. tod is an operator harness: it has opinions about process (branching, work tracking, how the agent treats the operator) but never writes application code, never scaffolds projects, and never deploys. It guides the existing agent; that is all.
 
 # Context
 
@@ -18,32 +18,29 @@ tod is developed in the open. All changes to the tod repository go through featu
 
 ## At a glance
 
-The operator installs tod, initialises a workspace, and then uses their coding agent exactly as they normally would. The agent picks up tod's generated instructions through the standard AGENTS.md mechanism and behaves as the operator's virtual product team: it onboards the operator in the first session, remembers who they are, communicates at their level, tracks work across projects, and follows an opinionated git workflow.
+The operator's coding agent installed tod, so the agent-harness config folders already exist 99 times out of 100. `tod init` appends tod's delimited instruction block to each agent's global instruction file and creates `~/.tod/` for state. From then on every agent session, in any folder, carries the harness: it onboards the operator in the first session, remembers who they are, communicates at their level, tracks work across projects through tod's CLI, and follows an opinionated git workflow. tod places nothing inside the operator's project folders.
 
-_Illustrative: file and directory names are indicative, not binding, except AGENTS.md and CLAUDE.md which are fixed by the agents that read them._
+_Illustrative: state file names are indicative, not binding. The instruction file paths are fixed by the agents that read them._
 
 ```
-my-workspace/
-  AGENTS.md            # canonical instructions, generated and owned by tod
-  CLAUDE.md            # symlink to AGENTS.md, created for Claude Code users
-  .tod/
-    config.json        # workspace settings, communication configuration
-    operator.md        # operator memory: profile, proficiency, preferences
-    work/              # orchestrator state: projects, features, tasks, status
-  projects/
-    my-app/            # an operator project (its own git repo); tod adds
-      AGENTS.md        # only instructions, never application code
-      CLAUDE.md        # symlink to AGENTS.md
+~/.agents/AGENTS.md    # cross-agent standard; tod appends its marker block
+~/.claude/CLAUDE.md    # Claude Code; tod appends its marker block
+~/.tod/
+  config.json          # settings, communication configuration
+  operator.md          # operator memory: profile, proficiency, preferences
+  work.json            # work state: projects, features, tasks (CLI-mutated)
+  log.jsonl            # append-only activity log (CLI-mutated)
 ```
 
 ```mermaid
 flowchart LR
     O[Operator] -->|conversation| A[Coding agent]
-    A -->|reads| I[Generated instructions]
-    A -->|reads and updates| S[Operator memory + work state]
-    T[tod CLI] -->|generates, repairs| I
-    T -->|creates, registers| P[Project folders]
-    A -->|builds in| P
+    A -->|reads| I[tod block in global instructions]
+    A -->|reads, edits| M[operator.md]
+    A -->|tod work / tod log / tod status| S[work state + log]
+    T[tod CLI] -->|init, sync| I
+    T -->|owns| S
+    A -->|builds in| P[Operator's project folders]
 ```
 
 ## Problem
@@ -57,106 +54,106 @@ Four failure modes recur when a non-technical operator works directly with a cod
 
 ## Approach
 
-tod is a **config/state harness**, not a launcher. The operator runs their agent as usual; tod maintains the files the agent reads and writes. This keeps tod agent-agnostic by construction: any agent that honours AGENTS.md works without tod changes. Agent-specific code is limited to thin file adapters. For v0.1 the only one needed is a CLAUDE.md symlink for Claude Code, since Codex and opencode read AGENTS.md natively. The adapter layer must allow future agents to be added without restructuring.
+tod is a **config/state harness**, not a launcher. The operator runs their agent as usual; tod maintains the files the agent reads and the state the agent updates through tod's CLI. Integration is at the user level: agents load global instructions from their harness config folders (`~/.agents/AGENTS.md` for the cross-agent standard, `~/.claude/CLAUDE.md` for Claude Code), so the harness reaches every session regardless of which folder it starts in. Project folders belong to the operator and their agent; tod never writes into them. Agent-specific code is limited to knowing each agent's global instruction file path; adding an agent is additive.
 
-tod-managed content is delimited, not whole-file. Where tod creates a file, it owns it outright. Where a file already exists (an operator's own AGENTS.md, a real CLAUDE.md), tod appends a clearly delimited marker block and thereafter edits only inside its own markers, never the surrounding content. Content inside the markers is produced from templates combined with the operator profile and communication configuration, and is regenerated by tod on demand, so drift is always repairable. Two categories of state are deliberately agent-writable, with the rules for writing them embedded in the generated instructions: the operator memory and the work state. Agents are explicitly instructed never to edit tod-managed content by hand.
+tod-managed content is delimited, not whole-file. In each global instruction file, tod owns exactly one clearly delimited marker block: appended if absent, rewritten only between its markers, with surrounding operator or agent content never touched. Block content is rendered from templates combined with the operator profile and communication configuration, and is regenerated by `tod sync` on demand, so drift is always repairable. Agents are instructed never to edit tod-managed content by hand.
 
-Two principles run through every command. First, operator-system safety: every filesystem write is checked against an explicit allowlist of roots (tod's user-level directories and operator-designated project folders), with symlinks resolved before the check. tod never deletes or overwrites files it did not create, and all writes are atomic. Second, determinism: routine mutations (registering a project, updating a marker block, appending work state) are CLI commands, not instructions for an agent to interpret. Agents are directed to run tod commands rather than hand-edit tod-managed files; free-form agent writing is reserved for genuinely interpretive content such as operator-memory prose.
+Two principles run through every command. First, operator-system safety: every filesystem write is checked against an explicit allowlist of roots (`~/.agents/`, `~/.claude/`, `~/.tod/`), with symlinks resolved before the check. tod never deletes or overwrites files it did not create, and all writes are atomic. Second, determinism: routine mutations (recording work, appending the log, changing configuration, updating marker blocks) are CLI commands, not instructions for an agent to interpret. Agents are directed to run tod commands rather than hand-edit tod-managed files; free-form agent writing is reserved for genuinely interpretive content, which in v0.1 is exactly one file: the operator memory.
 
-The operator-facing capabilities are all rendered into those instructions. Onboarding is agent-led: `tod init` leaves a seed profile, and the instructions direct the agent to run a lightweight onboarding conversation in the operator's first session. Ongoing use refines the profile into operator memory. Communication configuration sets where the agent sits on dimensions such as technical versus non-technical and detailed versus concise. Persona composition reads the profile, determines which disciplines the operator lacks (product management, engineering management, software engineering, architecture), and directs the agent to supply them internally while presenting one coherent interface. The work orchestrator is markdown state plus instruction rules: any session can answer "what is in flight?" and update status, and the tod CLI can report the same view without an agent.
-
-tod's opinions are about process, not technology. v0.1 renders zero tech-stack instructions: no runtime, framework, database, or tooling guidance reaches the agent. tod never scaffolds or modifies application code; that is permanent scope, not deferred scope. Project creation is deliberately thin: `tod new` makes the folder, places project-level instructions, initialises a git repository, and registers the project in work state. The agent can run it on the operator's behalf when a conversation calls for a new project. The generated instructions enforce the git workflow: every feature and bug fix on its own branch, never direct work on main, branches explained to the operator as separate versions of their app.
+The operator-facing capabilities are all rendered into the instruction block. Onboarding is agent-led: `tod init` seeds an empty profile, and the block directs the agent to run a lightweight onboarding conversation in the operator's first session. Ongoing use refines the profile into operator memory. Communication configuration sets where the agent sits on dimensions such as technical versus non-technical and detailed versus concise. Persona composition reads the profile, determines which disciplines the operator lacks (product management, engineering management, software engineering, architecture), and directs the agent to supply them internally while presenting one coherent interface. The work orchestrator is CLI-owned state plus instruction rules: agents record features and tasks with `tod work`, note events with `tod log`, and any session or `tod status` can answer "what is in flight?". The git workflow is enforced by the block: every feature and bug fix on its own branch, never direct work on main, branches explained to the operator as separate versions of their app.
 
 # Requirements
 
 ## Functional Requirements
 
-### Workspace and CLI
+### CLI and distribution
 
-1. **FR1.** `tod init` creates a workspace: it generates the canonical workspace instructions, creates agent adapter files, and writes a seed operator profile and empty work state. It asks the operator nothing; onboarding is agent-led (FR9). Existing files are never overwritten: where an AGENTS.md already exists, tod appends its marker block.
-2. **FR2.** `tod new` creates a project inside the workspace: a folder with project-level generated instructions and adapter files, an initialised git repository with an initial commit on main, and a registration in work state. It adds no application code and no tech-stack files. It is runnable by the operator directly or by the agent on the operator's behalf.
-3. **FR3.** `tod sync` regenerates all generated files from templates and current configuration, and repairs missing or broken adapter symlinks. It is idempotent and never touches operator memory or work state.
-4. **FR4.** `tod status` reports work in flight across all projects from the orchestrator state, without requiring an agent session.
-5. **FR5.** tod is distributed on npm as the package `tod-ai`, exposing a `tod` binary, installable with npm or bun.
+1. **FR1.** `tod init` sets up the harness: it creates `~/.tod/` with configuration, a seed operator profile, empty work state, and an empty log, and appends tod's instruction block to each detected agent's global instruction file. Detection means the agent's config folder exists; the instruction file is created when missing. Existing file content is never modified outside tod's block. Idempotent: re-running repairs rather than duplicates.
+2. **FR2.** `tod sync` re-renders tod's instruction blocks from current configuration and repairs `~/.tod/` structure. It never modifies content outside tod's markers and never touches operator memory, work state, or the log. Idempotent.
+3. **FR3.** `tod status` reports work in flight across all tracked projects, without requiring an agent session.
+4. **FR4.** `tod work` provides deterministic subcommands to record and update work: add features and tasks under a named project, update status, and complete items. Agents use these commands; they never hand-edit work state.
+5. **FR5.** `tod log` appends timestamped entries to the activity log. The log is append-only; no command rewrites history.
+6. **FR6.** `tod config` reads and updates settings, including the communication dimensions. Settings changes take effect in instruction blocks via `tod sync`.
+7. **FR7.** tod is distributed on npm as the package `tod-ai`, exposing a `tod` binary, installable with npm or bun.
 
-### Agent adapters
+### Agent integration
 
-6. **FR6.** Canonical instructions live in AGENTS.md at the workspace root and in each project. Any agent that reads AGENTS.md works with no tod changes and no agent-specific configuration.
-7. **FR7.** A Claude Code adapter provides CLAUDE.md as a symlink to AGENTS.md at each level. Where a real CLAUDE.md already exists, tod does not replace it; it falls back to appending its marker block there. The adapter layer is structured so additional agent adapters are additive.
-8. **FR8.** tod-managed content carries machine-readable markers: whole-file for tod-created files, delimited blocks inside shared files. The instructions direct agents never to edit inside the markers. `tod sync` restores drifted tod-managed content and never modifies content outside its markers.
+8. **FR8.** Integration targets each agent's global instruction file: `~/.agents/AGENTS.md` for AGENTS.md-standard agents and `~/.claude/CLAUDE.md` for Claude Code. The adapter layer is a per-agent target path; additional agents are additive. tod writes nothing into project folders.
+9. **FR9.** tod-managed content in shared files is a single delimited marker block with machine-readable markers. The block directs agents never to edit inside the markers. `tod sync` restores a drifted block and never modifies content outside it.
 
 ### Onboarding and operator memory
 
-9. **FR9.** Onboarding is fully agent-led. The generated instructions direct the agent to run a lightweight onboarding conversation in the operator's first session, discovering their background across product management, engineering, architecture, and general technical depth, and identifying capability gaps rather than assigning a predefined persona. The agent records the result in operator memory.
-10. **FR10.** Operator memory is a human-readable markdown file, separate from the generated instructions, loaded into agent context via the instructions. Agents are directed to record learned preferences there: technical and product proficiency, terminology, desired explanation depth, and working preferences.
-11. **FR11.** Agents may evolve operator memory but must not modify foundational instructions; the instructions state this rule and `tod sync` enforces it mechanically (FR8).
+10. **FR10.** Onboarding is fully agent-led. The instruction block directs the agent to run a lightweight onboarding conversation in the operator's first session, discovering their background across product management, engineering, architecture, and general technical depth, and identifying capability gaps rather than assigning a predefined persona. The agent records the result in operator memory.
+11. **FR11.** Operator memory is a human-readable markdown file in `~/.tod/`, separate from the instruction blocks, loaded into agent context via the block's rules. Agents are directed to record learned preferences there: technical and product proficiency, terminology, desired explanation depth, and working preferences. It is the only tod-managed file agents edit directly.
+12. **FR12.** Agents may evolve operator memory but must not modify foundational instructions; the block states this rule and `tod sync` enforces it mechanically (FR9).
 
 ### Communication configuration
 
-12. **FR12.** Communication is configurable along at least these dimensions: technical versus non-technical, detailed versus concise, implementation-focused versus outcome-focused, and chatty versus terse. Settings are captured during agent-led onboarding, changeable at any time, and rendered into the generated instructions.
-13. **FR13.** Preferences inferred during normal use are recorded in operator memory and refine communication without requiring explicit reconfiguration.
+13. **FR13.** Communication is configurable along at least these dimensions: technical versus non-technical, detailed versus concise, implementation-focused versus outcome-focused, and chatty versus terse. Settings are captured during agent-led onboarding via `tod config`, changeable at any time, and rendered into the instruction blocks.
+14. **FR14.** Preferences inferred during normal use are recorded in operator memory and refine communication without requiring explicit reconfiguration.
 
 ### Personas
 
-14. **FR14.** tod composes a virtual team from the operator's capability gaps, drawing on product manager, engineering manager, software engineer, and architect roles. A product expert gets an engineering organisation; a technical builder gets only the missing disciplines; a fully non-technical operator gets a whole virtual team.
-15. **FR15.** Personas collaborate internally and present one coherent interface. The operator never addresses or manages individual personas.
+15. **FR15.** tod composes a virtual team from the operator's capability gaps, drawing on product manager, engineering manager, software engineer, and architect roles. A product expert gets an engineering organisation; a technical builder gets only the missing disciplines; a fully non-technical operator gets a whole virtual team.
+16. **FR16.** Personas collaborate internally and present one coherent interface. The operator never addresses or manages individual personas.
 
 ### Work orchestrator
 
-16. **FR16.** Work state tracks projects, features, tasks, and their status as human-readable markdown in tod's state directory. Agents read and update it according to rules in the generated instructions.
-17. **FR17.** In any session, the operator can ask what work is in flight, which tasks are open, and which projects have activity, and the agent answers from work state. `tod status` (FR4) gives the same view.
-18. **FR18.** Bulk operations (closing tasks, reviewing outstanding work, reorganising work) are performed conversationally by the agent against the work state.
+17. **FR17.** Work state tracks projects, features, tasks, and their status in `~/.tod/`, mutated only through `tod work` and readable by agents and `tod status`. Projects enter work state the first time work is recorded against them; there is no separate registration step.
+18. **FR18.** In any session, the operator can ask what work is in flight, which tasks are open, and which projects have activity, and the agent answers from work state. `tod status` (FR3) gives the same view.
+19. **FR19.** Bulk operations (closing tasks, reviewing outstanding work, reorganising work) are performed conversationally by the agent, executed through `tod work` commands.
 
 ### Git workflow
 
-19. **FR19.** The generated instructions enforce an opinionated git workflow: every feature and every bug fix gets its own branch, and no direct development on main. Branches are explained to the operator as separate versions of their application.
-20. **FR20.** The agent owns git mechanics. Instructions require it to keep the repository out of difficult states and to resolve git problems without operator involvement.
+20. **FR20.** The instruction block enforces an opinionated git workflow: every feature and every bug fix gets its own branch, and no direct development on main. Branches are explained to the operator as separate versions of their application.
+21. **FR21.** The agent owns git mechanics. The block requires it to keep repositories out of difficult states and to resolve git problems without operator involvement.
 
 ### Deterministic tooling
 
-21. **FR21.** Every routine mutation of tod-managed state (marker-block updates, work-state changes, project registration, log appends) is exposed as a deterministic, idempotent CLI command. The generated instructions direct agents to run these commands instead of hand-editing tod-managed files.
+22. **FR22.** Every routine mutation of tod-managed state (marker blocks, work state, log, configuration) is exposed as a deterministic, idempotent CLI command. The instruction block directs agents to run these commands instead of hand-editing tod-managed files.
 
 ## Non-Functional Requirements
 
 1. **NFR1.** tod is built with Bun, TypeScript, Biome, and bun test. This is tod's own implementation stack and is never rendered into operator-facing instructions.
 2. **NFR2.** tod is fully local. No network services, no accounts, no telemetry in v0.1. Operator memory contains personal information and must never end up inside a project repository or anything pushed remotely.
-3. **NFR3.** CLI operations are non-destructive by default: `tod sync` never overwrites operator-authored content, tod never deletes or overwrites files it did not create, and writes are atomic so a failed command leaves every file untouched.
-4. **NFR4.** Supported platforms are macOS and Linux. Windows is out of scope for v0.1 (the symlink adapter strategy does not translate cleanly).
-5. **NFR5.** Generated instructions stay small enough not to crowd agent context windows. Prefer concise rules over exhaustive prose; push detail into state files loaded on demand.
+3. **NFR3.** CLI operations are non-destructive by default: tod never deletes or overwrites files it did not create, never modifies content outside its markers, and writes atomically so a failed command leaves every file untouched.
+4. **NFR4.** Supported platforms are macOS and Linux. Windows is out of scope for v0.1.
+5. **NFR5.** The instruction block stays small enough not to crowd agent context windows. Prefer concise rules over exhaustive prose; push detail into state files and CLI output loaded on demand.
 6. **NFR6.** The repository is structured for open source: MIT licensed, documented well enough for a stranger to install and use, and free of personal data and machine-specific paths.
-7. **NFR7.** Every filesystem write resolves symlinks and must land inside an explicit allowlist of roots: tod's user-level directories and operator-designated project directories. Out-of-boundary targets are refused with an error naming the boundary.
-8. **NFR8.** The CLI is agent-facing: non-interactive, stable exit codes, help text that states when to use each command, and errors that state what failed, why, and the exact next action.
+7. **NFR7.** Every filesystem write resolves symlinks and must land inside the allowlist: `~/.agents/`, `~/.claude/`, and `~/.tod/`. Out-of-boundary targets are refused with an error naming the boundary.
+8. **NFR8.** The CLI is agent-facing: non-interactive, stable exit codes, help text that states when to use each command, and errors that state what failed, why, and the exact next action. On unexpected state (missing marker, malformed file), commands stop, change nothing, and report.
 
 ## Non-goals
 
 1. Deployment. tod never manages deployments. Permanent scope, not deferred scope.
 2. Scaffolding and application code. tod never creates or modifies application code; it guides the agent that does. Permanent scope.
-3. Tech-stack instructions. v0.1 renders no opinions about runtimes, frameworks, databases, or tooling into agent instructions. This may be revisited in later versions.
-4. Launcher or wrapper mode. tod does not spawn or supervise agent processes in v0.1.
-5. Agent-specific features beyond file adapters. No Claude Code skills, subagents, or hooks in v0.1.
-6. Hosted service, multi-operator workspaces, or team features.
-7. Windows support.
-8. Databases or structured storage for tod's own state. Markdown and JSON files only in v0.1.
+3. Project-level files and commands. tod writes nothing into project folders and has no per-project commands; projects exist only as names in work state.
+4. Tech-stack instructions. v0.1 renders no opinions about runtimes, frameworks, databases, or tooling into agent instructions. This may be revisited in later versions.
+5. Launcher or wrapper mode. tod does not spawn or supervise agent processes in v0.1.
+6. Agent-specific features beyond instruction-file targets. No Claude Code skills, subagents, or hooks in v0.1.
+7. Hosted service, multi-operator setups, or team features.
+8. Windows support.
+9. Databases or structured storage beyond JSON and markdown files for tod's own state.
 
 # Acceptance Criteria
 
-1. [ ] **AC1.** On a machine without tod: install `tod-ai`, run `tod init`. The workspace contains generated AGENTS.md, a valid CLAUDE.md symlink, a seed operator profile, and empty work state. (FR1, FR5, FR6, FR7)
-2. [ ] **AC2.** Open the fresh workspace in an AGENTS.md-reading agent. Unprompted, the agent runs the onboarding conversation and records the operator's background and capability gaps in operator memory. (FR9, FR10)
-3. [ ] **AC3.** Run `tod new` (or ask the agent to start a project). The project folder contains generated instructions with adapter symlink and is a git repository with an initial commit on main, is registered in work state, and contains zero application or tech-stack files. (FR2, FR16)
-4. [ ] **AC4.** Open the workspace in a second AGENTS.md-reading agent with zero agent-specific setup. It adopts the tod instructions: it acts as the operator's team and consults work state when asked about work. (FR6, FR15, FR17)
-5. [ ] **AC5.** Tell the agent a working preference (for example "stop showing me code"). Operator memory is updated, and a fresh session honours the preference without being told again. (FR10, FR13)
-6. [ ] **AC6.** Start a feature through agent conversation. Work state gains the feature and its tasks; both `tod status` and a brand-new agent session report it as in flight. (FR4, FR16, FR17)
-7. [ ] **AC7.** Ask the agent for a change in a project. The work lands on a new branch, not on main. (FR19, FR20)
-8. [ ] **AC8.** Delete the CLAUDE.md symlink and hand-edit the generated AGENTS.md. `tod sync` restores both while leaving operator memory and work state untouched. (FR3, FR8, NFR3)
-9. [ ] **AC9.** With a fully non-technical operator profile, the agent supplies product and engineering judgement itself rather than asking the operator engineering questions, and communicates according to the configured dimensions. (FR12, FR14, FR15)
+1. [ ] **AC1.** On a machine with existing `~/.agents/` and `~/.claude/` folders whose instruction files contain operator content: install `tod-ai`, run `tod init`. `~/.tod/` exists with config, seed operator profile, empty work state, and empty log; both instruction files gained tod's marker block; all pre-existing content is byte-identical. Re-running `tod init` changes nothing. (FR1, FR8, FR9)
+2. [ ] **AC2.** Open a fresh session in any folder with an AGENTS.md-reading agent. Unprompted, the agent runs the onboarding conversation and records the operator's background and capability gaps in operator memory. (FR10, FR11)
+3. [ ] **AC3.** Open a session with a second agent with zero agent-specific setup. It adopts the harness: acts as the operator's team and consults work state when asked about work. (FR8, FR16, FR18)
+4. [ ] **AC4.** Tell the agent a working preference (for example "stop showing me code"). Operator memory is updated, and a fresh session honours the preference without being told again. (FR11, FR14)
+5. [ ] **AC5.** Start a feature through agent conversation. The agent records it via `tod work`; both `tod status` and a brand-new agent session report it as in flight. (FR3, FR4, FR17, FR18)
+6. [ ] **AC6.** Ask the agent for a change in a project. The work lands on a new branch, not on main. (FR20, FR21)
+7. [ ] **AC7.** Hand-edit inside tod's marker block and delete a `~/.tod/` structural file. `tod sync` restores the block and structure while leaving operator memory, work state, log, and all content outside the markers untouched. (FR2, FR9, NFR3)
+8. [ ] **AC8.** With a fully non-technical operator profile, the agent supplies product and engineering judgement itself rather than asking the operator engineering questions, and communicates according to the configured dimensions. (FR13, FR15, FR16)
+9. [ ] **AC9.** `tod work` and `tod log` mutations are atomic and idempotent; on a malformed state file the command stops, changes nothing, and reports a fix. A write targeting a path outside the allowlist is refused with an error naming the boundary. (FR4, FR5, FR22, NFR3, NFR7, NFR8)
 10. [ ] **AC10.** The tod repository passes its own checks (typecheck, Biome, tests) and contains no operator personal data or machine-specific paths. (NFR1, NFR6)
-11. [ ] **AC11.** Run `tod init` where an AGENTS.md with operator content already exists. tod appends its marker block and the pre-existing content is byte-identical. A write targeting a path outside the allowlist is refused with an error naming the boundary. (FR1, FR8, NFR7)
 
 # References
 
-1. [AGENTS.md](https://agents.md): the cross-agent instruction file convention the adapter strategy relies on.
-2. Repository licence: MIT (see LICENSE).
+1. [AGENTS.md](https://agents.md): the cross-agent instruction file convention the integration relies on.
+2. [agents.md issue #91](https://github.com/agentsmd/agents.md/issues/91): the `~/.agents/AGENTS.md` user-level standard path.
+3. Repository licence: MIT (see LICENSE).
 
 # Open Questions
 
-None. All open flags are resolved. Remaining choices (state file formats inside `.tod/`, instruction template wording, CLI argument details) are implementer degrees of freedom.
+None. All open flags are resolved. Remaining choices (state file schemas inside `~/.tod/`, instruction template wording, CLI argument details) are implementer degrees of freedom.
