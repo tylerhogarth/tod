@@ -1,7 +1,8 @@
+import pkg from "../package.json";
 import { commands } from "./commands/index.ts";
 import { EXIT, formatError } from "./output.ts";
 
-const VERSION = "0.1.0";
+const VERSION = pkg.version;
 
 const HELP = `tod ${VERSION}: operator harness for coding agents
 

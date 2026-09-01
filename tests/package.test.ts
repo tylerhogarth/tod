@@ -19,6 +19,8 @@ describe("package metadata", () => {
   test("the node bundle builds and runs without bun", () => {
     const build = Bun.spawnSync(["bun", "run", "scripts/build.ts"], { cwd: ROOT });
     expect(build.exitCode).toBe(0);
+    const shebang = readFileSync(join(ROOT, "dist/cli.js"), "utf8").split("\n", 1)[0];
+    expect(shebang).toBe("#!/usr/bin/env node");
     const version = Bun.spawnSync(["node", "dist/cli.js", "--version"], { cwd: ROOT });
     expect(version.exitCode).toBe(0);
     expect(version.stdout.toString().trim()).toBe(packageJson.version);
