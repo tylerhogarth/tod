@@ -57,7 +57,7 @@ Covers: FR7, NFR1, NFR6 (partial), NFR8, AC10.
 
 ### Implement M2: State foundations, init, and sync
 
-Status: ☐ Not started
+Status: ✓ Complete (local checks green; CI validates on PR #3)
 
 _Outcomes_
 `tod init` installs the harness into a home directory: `~/.tod/` state plus marker blocks appended to both agent instruction files, preserving existing content byte-for-byte. `tod sync` re-renders and repairs idempotently. All writes are atomic and boundary-checked.
@@ -66,12 +66,12 @@ Covers: FR1, FR2, FR8, FR9, FR12 (mechanical half), NFR2, NFR3, NFR4, NFR7.
 
 **Tasks:**
 
-1. [ ] Atomic, boundary-checked file-write layer used by every mutation (satisfies: TC-10)
-2. [ ] Marker-block engine: append or update tod's delimited block inside a possibly pre-existing file, preserving surrounding content byte-for-byte (satisfies: TC-1, TC-3)
-3. [ ] Config schema and defaults (zod-validated) plus `~/.tod/` layout creation (satisfies: TC-1)
-4. [ ] `tod init`: state dir, seed operator memory, empty work state and log, block install into detected agent files (satisfies: TC-1)
-5. [ ] `tod sync`: re-render blocks, repair `~/.tod/` structure, never touch agent-writable state or content outside markers (satisfies: TC-3, TC-4)
-6. [ ] End-to-end tests running the CLI against fake home directories (satisfies: TC-1, TC-3, TC-4, TC-10)
+1. [x] Atomic, boundary-checked file-write layer used by every mutation (satisfies: TC-10)
+2. [x] Marker-block engine: append or update tod's delimited block inside a possibly pre-existing file, preserving surrounding content byte-for-byte (satisfies: TC-1, TC-3)
+3. [x] Config schema and defaults (zod-validated) plus `~/.tod/` layout creation (satisfies: TC-1)
+4. [x] `tod init`: state dir, seed operator memory, empty work state and log, block install into detected agent files (satisfies: TC-1)
+5. [x] `tod sync`: re-render blocks, repair `~/.tod/` structure, never touch agent-writable state or content outside markers (satisfies: TC-3, TC-4)
+6. [x] End-to-end tests running the CLI against fake home directories (satisfies: TC-1, TC-3, TC-4, TC-10)
 
 ### Implement M3: Instruction block content — the operator harness
 

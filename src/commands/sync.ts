@@ -1,4 +1,7 @@
-import { EXIT, formatError } from "../output.ts";
+import { homedir } from "node:os";
+import { installHarness } from "../harness.ts";
+import { EXIT } from "../output.ts";
+import { formatError, harnessErrorToAgentError, renderReport } from "./harness-io.ts";
 import type { Command } from "./index.ts";
 
 export const sync: Command = {
@@ -10,13 +13,17 @@ marker blocks and tod-owned structural files; operator memory, work state,
 the log, and all content outside the markers are never modified. Idempotent.
 `,
   execute: async () => {
-    process.stderr.write(
-      formatError({
-        what: "'tod sync' is not implemented yet",
-        why: "this build is a pre-release skeleton",
-        fix: "wait for a tod-ai release that includes sync",
-      }),
-    );
-    return EXIT.failure;
+    const home = homedir();
+    const result = installHarness(home, "sync");
+    return result.match({
+      ok: (report) => {
+        process.stdout.write(renderReport(report, home, "tod harness is in sync"));
+        return EXIT.ok;
+      },
+      err: (error) => {
+        process.stderr.write(formatError(harnessErrorToAgentError(error, home)));
+        return EXIT.failure;
+      },
+    });
   },
 };

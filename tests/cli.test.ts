@@ -58,8 +58,8 @@ describe("command help", () => {
 });
 
 describe("unimplemented commands", () => {
-  test.each(["init", "sync", "status"])("tod %s fails with guidance", (command) => {
-    const { code, stderr } = runCli(command);
+  test("tod status fails with guidance", () => {
+    const { code, stderr } = runCli("status");
     expect(code).toBe(1);
     expect(stderr).toContain("not implemented");
     expect(stderr).toContain("fix:");
