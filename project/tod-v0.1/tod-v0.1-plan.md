@@ -75,7 +75,7 @@ Covers: FR1, FR2, FR8, FR9, FR12 (mechanical half), NFR2, NFR3, NFR4, NFR7.
 
 ### Implement M3: Instruction block content — the operator harness
 
-Status: ☐ Not started
+Status: ✓ Complete (local checks green; CI validates on PR #4)
 
 _Outcomes_
 The rendered block carries the operator harness: agent-led onboarding, operator-memory rules, communication dimensions, persona composition, work and CLI usage rules, and the git workflow. Content is asserted by tests and within the size budget.
@@ -84,13 +84,13 @@ Covers: FR10, FR11, FR12, FR13, FR14, FR15, FR16, FR20, FR21, FR22 (instruction 
 
 **Tasks:**
 
-1. [ ] Block template: harness preamble, do-not-edit rule, operator-memory read/write rules (satisfies: TC-9)
-2. [ ] Agent-led onboarding directive: first-session conversation, capability-gap discovery, profile written to memory (satisfies: TC-9, TC-11)
-3. [ ] Communication configuration rendering from config, plus the inferred-preference rule (satisfies: TC-9, TC-13, TC-16)
-4. [ ] Persona composition: gap-based virtual team rules with a single coherent interface (satisfies: TC-9, TC-16)
-5. [ ] Git workflow rules: branch-per-feature, no direct work on main, builder-terms explanation, agent owns mechanics (satisfies: TC-9, TC-15)
-6. [ ] Work orchestrator and CLI usage rules: record via `tod work`/`tod log`, answer from work state, never hand-edit tod-managed files (satisfies: TC-9, TC-14)
-7. [ ] Size-budget and content-assertion tests over the rendered block (satisfies: TC-8, TC-9)
+1. [x] Block template: harness preamble, do-not-edit rule, operator-memory read/write rules (satisfies: TC-9)
+2. [x] Agent-led onboarding directive: first-session conversation, capability-gap discovery, profile written to memory (satisfies: TC-9, TC-11)
+3. [x] Communication configuration rendering from config, plus the inferred-preference rule (satisfies: TC-9, TC-13, TC-16)
+4. [x] Persona composition: gap-based virtual team rules with a single coherent interface (satisfies: TC-9, TC-16)
+5. [x] Git workflow rules: branch-per-feature, no direct work on main, builder-terms explanation, agent owns mechanics (satisfies: TC-9, TC-15)
+6. [x] Work orchestrator and CLI usage rules: record via `tod work`/`tod log`, answer from work state, never hand-edit tod-managed files (satisfies: TC-9, TC-14)
+7. [x] Size-budget and content-assertion tests over the rendered block (satisfies: TC-8, TC-9)
 
 ### Implement M4: Work orchestrator commands
 
