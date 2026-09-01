@@ -94,7 +94,7 @@ Covers: FR10, FR11, FR12, FR13, FR14, FR15, FR16, FR20, FR21, FR22 (instruction 
 
 ### Implement M4: Work orchestrator commands
 
-Status: ☐ Not started
+Status: ✓ Complete (local checks green; CI validates on PR #5)
 
 _Outcomes_
 Agents record and update work deterministically: `tod work` and `tod log` mutate state atomically, `tod config` adjusts settings, and `tod status` reports work in flight across projects.
@@ -103,11 +103,11 @@ Covers: FR3, FR4, FR5, FR6, FR13 (mechanical half), FR17, FR18, FR19, FR22.
 
 **Tasks:**
 
-1. [ ] Work-state module: zod schema, load/save through the atomic write layer, malformed-state errors with fixes (satisfies: TC-5)
-2. [ ] `tod work` subcommands: add, done, update across projects, features, and tasks (satisfies: TC-5, TC-6)
-3. [ ] `tod log`: append-only timestamped entries (satisfies: TC-5)
-4. [ ] `tod config`: get and set settings including communication dimensions (satisfies: TC-9 via sync rendering)
-5. [ ] `tod status`: human-readable in-flight report across projects (satisfies: TC-6)
+1. [x] Work-state module: zod schema, load/save through the atomic write layer, malformed-state errors with fixes (satisfies: TC-5)
+2. [x] `tod work` subcommands: add, done, update across projects, features, and tasks (satisfies: TC-5, TC-6)
+3. [x] `tod log`: append-only timestamped entries (satisfies: TC-5)
+4. [x] `tod config`: get and set settings including communication dimensions (satisfies: TC-9 via sync rendering)
+5. [x] `tod status`: human-readable in-flight report across projects (satisfies: TC-6)
 
 ### Release M5: Docs, dogfood, publish, close-out
 

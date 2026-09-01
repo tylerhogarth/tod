@@ -19,6 +19,11 @@ commands:
           after tod-managed content was edited, deleted, or looks wrong.
   status  Report work in flight across all projects. Use when the operator
           asks what they are working on.
+  work    Record and update features, bugs, and tasks. Use instead of ever
+          hand-editing work state.
+  log     Append a notable event to the activity log. Append-only.
+  config  Read or change settings such as communication style; follow with
+          'tod sync' to apply.
 
 Run 'tod <command> --help' for when-to-use guidance and flags.
 exit codes: 0 success · 1 failure (the message states the fix) · 2 usage error
@@ -42,7 +47,7 @@ export async function run(argv: readonly string[]): Promise<number> {
       formatError({
         what: `unknown command '${name}'`,
         why: `tod has no command named '${name}'`,
-        fix: "run 'tod --help' and pick one of: init, sync, status",
+        fix: "run 'tod --help' and pick one of: init, sync, status, work, log, config",
       }),
     );
     return EXIT.usage;
