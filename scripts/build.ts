@@ -11,9 +11,12 @@ if (!result.success) {
   }
   process.exit(1);
 }
+// Bun.build carries the entry file's bun shebang into the bundle; replace
+// whatever is there so the installed bin always resolves node.
 const bundlePath = "dist/cli.js";
-const bundle = await Bun.file(bundlePath).text();
-if (!bundle.startsWith("#!")) {
-  await Bun.write(bundlePath, `#!/usr/bin/env node\n${bundle}`);
+let bundle = await Bun.file(bundlePath).text();
+if (bundle.startsWith("#!")) {
+  bundle = bundle.slice(bundle.indexOf("\n") + 1);
 }
+await Bun.write(bundlePath, `#!/usr/bin/env node\n${bundle}`);
 console.log(`built ${bundlePath}`);
