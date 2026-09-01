@@ -111,7 +111,7 @@ Covers: FR3, FR4, FR5, FR6, FR13 (mechanical half), FR17, FR18, FR19, FR22.
 
 ### Release M5: Docs, dogfood, publish, close-out
 
-Status: ☐ Not started
+Status: ► In progress (docs and publish prep complete on PR #6; dogfood pass, npm publish, and close-out remain with the maintainer)
 
 _Outcomes_
 A stranger can install `tod-ai` from npm and set up the harness from the README. The manual test cases pass against real agents. The project folder is closed out.
@@ -124,9 +124,9 @@ Nothing is user-visible until the npm publish in M5; every Implement milestone m
 
 **Tasks:**
 
-1. [ ] Full README: install, quick start, harness concepts, supported agents; CONTRIBUTING for the open-source posture
-2. [ ] Dogfood pass: run TC-11 through TC-16 with Claude Code and one native AGENTS.md agent; fix what fails; record results (satisfies: TC-11, TC-12, TC-13, TC-14, TC-15, TC-16)
-3. [ ] Publish `tod-ai` to npm (maintainer action: npm account required); verify a clean-machine install (satisfies: TC-2)
+1. [x] Full README: install, quick start, harness concepts, supported agents; CONTRIBUTING for the open-source posture
+2. [ ] Dogfood pass: run TC-11 through TC-16 with Claude Code and one native AGENTS.md agent; fix what fails; record results (satisfies: TC-11, TC-12, TC-13, TC-14, TC-15, TC-16). Maintainer action; automated smoke coverage exists for the file plumbing.
+3. [ ] Publish `tod-ai` to npm (maintainer action: npm account required); verify a clean-machine install (satisfies: TC-2). Publish prep complete: node-target bundle, `prepublishOnly` gate, packed tarball verified to contain only dist/README/LICENSE.
 4. [ ] Close-out: verify every AC against its test cases, move durable docs into `docs/`, delete `project/tod-v0.1/`
 
 ## Open Questions
@@ -139,3 +139,5 @@ Nothing is user-visible until the npm publish in M5; every Implement milestone m
 2026-09-01: Ownership model changed from whole-file generation to delimited marker blocks inside possibly pre-existing shared files (spec FR1, FR7, FR8). Added operator-system write boundary, atomic non-destructive writes, deterministic mutation commands, and agent-facing CLI principles. M1 expanded with the boundary module and repo AGENTS.md at operator request; project scaffolded with Bun, TypeScript, Biome, better-result, zod.
 
 2026-09-01: Redesigned to a user-global harness at operator direction. Integration moved from a workspace directory to the agent harness config folders (`~/.agents/AGENTS.md`, `~/.claude/CLAUDE.md`) with all state in `~/.tod/`. Project-specific commands and folders removed (`tod new`, per-project instruction files, workspace concept); projects now exist only as names in work state. Work state moved from markdown to CLI-mutated JSON with `tod status` as the human-readable view; added `tod work`, `tod log`, `tod config` commands. Spec and test cases rewritten; milestones M2–M4 re-scoped.
+
+2026-09-01: Distribution switched from a bun-shebang source bin to a node-target bundle (`dist/cli.js`) built by `scripts/build.ts`, so `npm install -g tod-ai` works on machines that have node but not bun. Packaging and repo-hygiene tests added. M5 docs and publish prep complete; dogfood pass (TC-11 to TC-16), the npm publish itself, and close-out remain maintainer actions.
