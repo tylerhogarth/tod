@@ -1,6 +1,5 @@
-import { homedir } from "node:os";
 import { EXIT, formatError } from "../output.ts";
-import { todPaths } from "../paths.ts";
+import { resolveHome, todPaths } from "../paths.ts";
 import { loadWorkState, type WorkState } from "../work.ts";
 import { tildify } from "./harness-io.ts";
 import type { Command } from "./index.ts";
@@ -8,9 +7,11 @@ import type { Command } from "./index.ts";
 function renderStatus(state: WorkState, showAll: boolean): string {
   const lines: string[] = [];
   let open = 0;
+  let done = 0;
   for (const project of state.projects) {
     const visible = project.items.filter((item) => showAll || item.status !== "done");
     open += project.items.filter((item) => item.status !== "done").length;
+    done += project.items.filter((item) => item.status === "done").length;
     if (visible.length === 0 && !showAll) {
       continue;
     }
@@ -25,19 +26,19 @@ function renderStatus(state: WorkState, showAll: boolean): string {
   const header =
     state.projects.length === 0
       ? "no work recorded yet"
-      : `${state.projects.length} project${state.projects.length === 1 ? "" : "s"}, ${open} item${open === 1 ? "" : "s"} in flight`;
+      : `${state.projects.length} project${state.projects.length === 1 ? "" : "s"}, ${open} item${open === 1 ? "" : "s"} in flight${showAll ? `, ${done} done` : ""}`;
   return [header, ...lines].join("\n");
 }
 
 export const status: Command = {
-  help: `tod status — report work in flight across all projects
+  help: `tod status: report work in flight across all projects
 
 Use when the operator asks what they are working on, what is open, or which
 projects have activity. Reads work state only; changes nothing. Pass --all to
 include completed items.
 `,
   execute: async (args) => {
-    const home = homedir();
+    const home = resolveHome();
     const paths = todPaths(home);
     const loaded = loadWorkState(paths.workFile);
     if (loaded.isErr()) {

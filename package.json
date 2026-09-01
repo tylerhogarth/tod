@@ -26,6 +26,7 @@
     "harness"
   ],
   "scripts": {
+    "sandbox": "TOD_HOME=output bun src/cli.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

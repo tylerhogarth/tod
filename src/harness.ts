@@ -17,16 +17,6 @@ export const seedOperatorMemory = `# Operator memory
 
 This file is tod's memory of the operator. Agents: keep it current and truthful; it is the only tod-managed file you edit directly.
 
-## Onboarding
-
-Status: not started
-
-While onboarding is not started, follow the onboarding rule in your tod instructions, record what you learn below, then change the status line to: Status: complete.
-
-## Profile
-
-Nothing recorded yet.
-
 ## Preferences
 
 Nothing recorded yet.
@@ -78,7 +68,9 @@ export function installHarness(
   const config = configResult.value;
   const block = renderBlock(config);
 
-  const writes: { path: string; content: string }[] = [
+  // A null content means the file exists and is operator-owned from here on:
+  // it is reported as unchanged and never written.
+  const writes: { path: string; content: string | null }[] = [
     { path: paths.configFile, content: serialiseConfig(config) },
   ];
   for (const seed of [
@@ -86,9 +78,7 @@ export function installHarness(
     { path: paths.workFile, content: seedWorkState },
     { path: paths.logFile, content: "" },
   ]) {
-    if (readFileIfExists(seed.path) === null) {
-      writes.push(seed);
-    }
+    writes.push(readFileIfExists(seed.path) === null ? seed : { path: seed.path, content: null });
   }
 
   const skippedAgents: string[] = [];
@@ -107,6 +97,10 @@ export function installHarness(
 
   const files: FileReport[] = [];
   for (const write of writes) {
+    if (write.content === null) {
+      files.push({ path: write.path, outcome: "unchanged" });
+      continue;
+    }
     const result = writeFileAtomic(write.path, write.content, roots);
     if (result.isErr()) {
       return Result.err(result.error);

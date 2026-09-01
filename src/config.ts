@@ -2,26 +2,23 @@ import { Result, TaggedError } from "better-result";
 import { z } from "zod";
 import { readFileIfExists } from "./fsx.ts";
 
+const scale = z.literal([1, 2, 3, 4, 5]);
+
 export const configSchema = z.object({
-  version: z.literal(1),
-  communication: z.object({
-    technicality: z.enum(["non-technical", "semi-technical", "technical"]),
-    detail: z.enum(["concise", "balanced", "detailed"]),
-    focus: z.enum(["outcomes", "balanced", "implementation"]),
-    tone: z.enum(["terse", "conversational", "chatty"]),
-  }),
+  version: z.literal(2),
+  /** 1 eager (assume and build) to 5 pushy (explore requirements together first). */
+  requirementGathering: scale,
+  /** 1 concise (outcomes and short summaries) to 5 detailed (decisions and mechanisms). */
+  responseDetail: scale,
 });
 
 export type Config = z.infer<typeof configSchema>;
+export type Scale = z.infer<typeof scale>;
 
 export const defaultConfig: Config = {
-  version: 1,
-  communication: {
-    technicality: "non-technical",
-    detail: "balanced",
-    focus: "outcomes",
-    tone: "conversational",
-  },
+  version: 2,
+  requirementGathering: 3,
+  responseDetail: 3,
 };
 
 export class ConfigError extends TaggedError("Config")<{

@@ -1,10 +1,26 @@
 import { describe, expect, test } from "bun:test";
+import { existsSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const CLI = join(import.meta.dir, "..", "src", "cli.ts");
 
 function runCli(...args: string[]): { code: number; stdout: string; stderr: string } {
   const result = Bun.spawnSync(["bun", CLI, ...args]);
+  return {
+    code: result.exitCode,
+    stdout: result.stdout.toString(),
+    stderr: result.stderr.toString(),
+  };
+}
+
+function runSandboxed(
+  home: string,
+  ...args: string[]
+): { code: number; stdout: string; stderr: string } {
+  const result = Bun.spawnSync(["bun", CLI, ...args], {
+    env: { ...process.env, TOD_HOME: home },
+  });
   return {
     code: result.exitCode,
     stdout: result.stdout.toString(),
@@ -58,4 +74,39 @@ describe("command help", () => {
       expect(stdout).toContain("Use");
     },
   );
+});
+
+describe("writing style", () => {
+  test("help output contains no em or en dashes", () => {
+    const outputs = [
+      runCli("--help").stdout,
+      ...["init", "sync", "status", "work", "log", "config"].map(
+        (command) => runCli(command, "--help").stdout,
+      ),
+    ];
+    for (const output of outputs) {
+      expect(output).not.toContain("—");
+      expect(output).not.toContain("–");
+    }
+  });
+});
+
+describe("TOD_HOME override", () => {
+  test("init recreates the home structure under the override, not the real home", () => {
+    const sandbox = mkdtempSync(join(tmpdir(), "tod-sandbox-"));
+    const { code } = runSandboxed(sandbox, "init");
+    expect(code).toBe(0);
+    expect(existsSync(join(sandbox, ".tod", "config.json"))).toBe(true);
+    expect(existsSync(join(sandbox, ".tod", "work.json"))).toBe(true);
+  });
+
+  test("work written under the override is read back by status", () => {
+    const sandbox = mkdtempSync(join(tmpdir(), "tod-sandbox-"));
+    expect(runSandboxed(sandbox, "init").code).toBe(0);
+    const added = runSandboxed(sandbox, "work", "add", "Ship it", "--project", "demo");
+    expect(added.code).toBe(0);
+    const { code, stdout } = runSandboxed(sandbox, "status");
+    expect(code).toBe(0);
+    expect(stdout).toContain("Ship it");
+  });
 });

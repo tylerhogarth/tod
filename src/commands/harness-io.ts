@@ -1,8 +1,8 @@
-import { homedir } from "node:os";
 import type { HarnessError, InstallReport } from "../harness.ts";
 import { type AgentError, formatError } from "../output.ts";
+import { resolveHome } from "../paths.ts";
 
-export function tildify(path: string, home: string = homedir()): string {
+export function tildify(path: string, home: string = resolveHome()): string {
   return path.startsWith(home) ? `~${path.slice(home.length)}` : path;
 }
 
