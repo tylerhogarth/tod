@@ -12,12 +12,11 @@ deterministic, idempotent, and refuse unsafe writes.
 usage: tod <command> [flags]
 
 commands:
-  init    Create a tod workspace in the current directory. Use when the
-          operator wants tod set up and no .tod/ directory exists here.
-  new     Register a new project in the workspace. Use when the operator
-          starts a new app or idea; never scaffolds application code.
-  sync    Regenerate tod-managed files and repair adapter symlinks. Use after
-          tod-managed files were edited, deleted, or look wrong.
+  init    Install the tod harness for this user. Use when tod is not set up
+          yet: creates ~/.tod/ state and adds tod's instruction block to each
+          agent's global instruction file.
+  sync    Re-render tod's instruction blocks and repair ~/.tod structure. Use
+          after tod-managed content was edited, deleted, or looks wrong.
   status  Report work in flight across all projects. Use when the operator
           asks what they are working on.
 
@@ -43,7 +42,7 @@ export async function run(argv: readonly string[]): Promise<number> {
       formatError({
         what: `unknown command '${name}'`,
         why: `tod has no command named '${name}'`,
-        fix: "run 'tod --help' and pick one of: init, new, sync, status",
+        fix: "run 'tod --help' and pick one of: init, sync, status",
       }),
     );
     return EXIT.usage;

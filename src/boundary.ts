@@ -10,7 +10,7 @@ import { dirname, resolve, sep } from "node:path";
  */
 
 export function defaultAllowedRoots(home: string = homedir()): readonly string[] {
-  return [resolve(home, "agents"), resolve(home, "claude"), resolve(home, "todai")];
+  return [resolve(home, ".agents"), resolve(home, ".claude"), resolve(home, ".tod")];
 }
 
 /**
@@ -34,26 +34,19 @@ function toRealPath(path: string): string {
 }
 
 /**
- * True when `path` (after symlink resolution) is inside one of `roots`, or an
- * operator-designated extra root. Callers treat `false` as: stop, change
- * nothing, report the boundary in the error fix.
+ * True when `path` (after symlink resolution) is inside one of `roots`.
+ * Callers treat `false` as: stop, change nothing, report the boundary in the
+ * error fix.
  */
-export function isWriteAllowed(
-  path: string,
-  roots: readonly string[],
-  extraRoots: readonly string[] = [],
-): boolean {
+export function isWriteAllowed(path: string, roots: readonly string[]): boolean {
   const target = toRealPath(path);
-  return [...roots, ...extraRoots].some((root) => {
+  return roots.some((root) => {
     const realRoot = toRealPath(root);
     return target === realRoot || target.startsWith(realRoot + sep);
   });
 }
 
 /** Human/agent-readable description of the boundary, for error messages. */
-export function describeBoundary(
-  roots: readonly string[],
-  extraRoots: readonly string[] = [],
-): string {
-  return [...roots, ...extraRoots].join(", ");
+export function describeBoundary(roots: readonly string[]): string {
+  return roots.join(", ");
 }

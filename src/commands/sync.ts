@@ -2,12 +2,12 @@ import { EXIT, formatError } from "../output.ts";
 import type { Command } from "./index.ts";
 
 export const sync: Command = {
-  help: `tod sync — regenerate tod-managed files and repair adapters
+  help: `tod sync — re-render tod's instruction blocks and repair state
 
-Use after tod-managed files were edited, deleted, or look wrong, or after
-changing workspace configuration. Only touches content inside tod's own
-marker blocks and tod-owned files; operator memory, work state, and operator
-content in shared files are never modified. Idempotent.
+Use after tod-managed content was edited, deleted, or looks wrong, or after
+changing settings with 'tod config'. Only touches content inside tod's own
+marker blocks and tod-owned structural files; operator memory, work state,
+the log, and all content outside the markers are never modified. Idempotent.
 `,
   execute: async () => {
     process.stderr.write(

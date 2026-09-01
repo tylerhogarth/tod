@@ -2,13 +2,14 @@ import { EXIT, formatError } from "../output.ts";
 import type { Command } from "./index.ts";
 
 export const init: Command = {
-  help: `tod init — create a tod workspace in the current directory
+  help: `tod init — install the tod harness for this user
 
-Use when the operator wants tod set up and no .tod/ directory exists here.
-Creates tod-managed instructions, agent adapter symlinks, a seed operator
-profile, and empty work state. Asks nothing; onboarding is agent-led and
-described in the generated instructions. Idempotent: re-running repairs
-rather than overwrites.
+Use when tod is not set up yet. Creates ~/.tod/ (settings, operator memory,
+work state, log) and appends tod's delimited instruction block to each
+detected agent's global instruction file (~/.agents/AGENTS.md,
+~/.claude/CLAUDE.md). Existing file content outside tod's block is never
+modified. Asks nothing; onboarding is agent-led and described in the
+instruction block. Idempotent: re-running repairs rather than duplicates.
 `,
   execute: async () => {
     process.stderr.write(
