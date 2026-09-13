@@ -1,6 +1,7 @@
 import { config } from "./config.ts";
 import { init } from "./init.ts";
 import { log } from "./log.ts";
+import { skills } from "./skills.ts";
 import { status } from "./status.ts";
 import { sync } from "./sync.ts";
 import { work } from "./work.ts";
@@ -18,4 +19,5 @@ export const commands: Readonly<Record<string, Command>> = {
   work,
   log,
   config,
+  skills,
 };

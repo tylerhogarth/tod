@@ -2,7 +2,7 @@ import { Result, TaggedError } from "better-result";
 import { z } from "zod";
 import { type IoError, type OutOfBoundsError, readFileIfExists, writeFileAtomic } from "./fsx.ts";
 
-export const workItemSchema = z.object({
+const workItemSchema = z.object({
   id: z.number().int().positive(),
   title: z.string().min(1),
   kind: z.enum(["feature", "bug", "task"]),
@@ -12,7 +12,7 @@ export const workItemSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 
-export const workStateSchema = z.object({
+const workStateSchema = z.object({
   version: z.literal(1),
   nextId: z.number().int().positive(),
   projects: z.array(
@@ -26,7 +26,7 @@ export const workStateSchema = z.object({
 export type WorkItem = z.infer<typeof workItemSchema>;
 export type WorkState = z.infer<typeof workStateSchema>;
 
-export const emptyWorkState: WorkState = { version: 1, nextId: 1, projects: [] };
+const emptyWorkState: WorkState = { version: 1, nextId: 1, projects: [] };
 
 export class WorkStateError extends TaggedError("WorkState")<{
   path: string;
@@ -103,7 +103,7 @@ export function addItem(
   return Result.ok({ state: { ...state, nextId: state.nextId + 1, projects }, item });
 }
 
-export function findItem(state: WorkState, id: number): { project: string; item: WorkItem } | null {
+function findItem(state: WorkState, id: number): { project: string; item: WorkItem } | null {
   for (const project of state.projects) {
     const item = project.items.find((candidate) => candidate.id === id);
     if (item) {

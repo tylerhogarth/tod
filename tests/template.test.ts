@@ -105,6 +105,12 @@ describe("renderBlock content", () => {
     expect(block).toContain("Never hand-edit");
   });
 
+  test("routes new projects through the pinned skill, not through tod writing files", () => {
+    expect(block).toContain("tod skills");
+    expect(block).toContain("Starting something new");
+    expect(block).toContain("tod writes nothing inside project folders");
+  });
+
   test("enforces the git workflow in builder terms", () => {
     expect(block).toContain("own branch");
     expect(block).toContain("Never develop directly on main");

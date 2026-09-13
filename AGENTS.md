@@ -5,7 +5,8 @@ An operator harness CLI for coding agents, built with Bun and TypeScript. There 
 ## Commands
 
 - Install: `bun install`
-- All checks (run before committing): `bun run check`
+- Fast loop (run constantly while working): `bun run check`
+- Complete gate (run before committing): `bun run check:full`
 - Single test file: `bun test tests/boundary.test.ts`
 - Fix lint and formatting: `bun run lint:fix`
 
@@ -15,7 +16,8 @@ An operator harness CLI for coding agents, built with Bun and TypeScript. There 
 - Subcommands: `src/commands/`
 - Filesystem write allowlist: `src/boundary.ts`
 - Agent-facing error format and exit codes: `src/output.ts`
-- Active spec and plan: `project/tod-v0.1/`
+- Published agent skills: `skills/`
+- Active spec and plan: `project/tod-v0.2/`
 
 ## Agent-facing CLI
 
@@ -43,6 +45,19 @@ An operator harness CLI for coding agents, built with Bun and TypeScript. There 
 
 - Routine mutations (appending a log line, updating a marker block, registering a project) are CLI commands with tests. Do not design features that ask an agent to hand-edit tod-managed files.
 - When agent judgement is unavoidable (for example operator-memory prose), still route the write through a command.
+
+## Skills
+
+- tod writes nothing into project folders. Anything the agent must do inside a project is published as a skill under `skills/`, and the agent does the writing.
+- Skills are installed from this repository pinned to the release tag matching the installed tod version, so the skill and the CLI never disagree. `tod skills` prints the command; it installs nothing.
+- Every release must carry a matching `v<version>` git tag, or the pinned install cannot resolve.
+- Skills recommend tools and state invariants. They carry no version pins and no install commands, because the agent determines current install steps and pinned commands go stale on every upstream release.
+
+## Paved road
+
+- tod follows the engineering standard it publishes, with one exception: it keeps `bun test` rather than the recommended test runner, because tod is a Bun CLI where the native runner is the correct tool and a migration would be churn on a shipped package with no functional gain.
+- The compiler and the linter enforce the invariants; do not restate them as prose. `strict`, `noUncheckedIndexedAccess`, and `exactOptionalPropertyTypes` are required, and weakening configuration to silence an error is not an acceptable fix.
+- `bun run check:full` includes dead-code analysis. Resolve its findings rather than suppressing them: repeated iteration leaves unused exports and dependencies behind.
 
 ## Dependencies
 

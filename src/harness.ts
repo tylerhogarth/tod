@@ -13,7 +13,7 @@ import { type MalformedMarkersError, upsertBlock } from "./markers.ts";
 import { agentTargets, todPaths } from "./paths.ts";
 import { renderBlock } from "./template.ts";
 
-export const seedOperatorMemory = `# Operator memory
+const seedOperatorMemory = `# Operator memory
 
 This file is tod's memory of the operator. Agents: keep it current and truthful; it is the only tod-managed file you edit directly.
 
@@ -24,7 +24,7 @@ Nothing recorded yet.
 
 const seedWorkState = `${JSON.stringify({ version: 1, nextId: 1, projects: [] }, null, 2)}\n`;
 
-export class NotInitialisedError extends TaggedError("NotInitialised")<{ todDir: string }> {}
+class NotInitialisedError extends TaggedError("NotInitialised")<{ todDir: string }> {}
 
 export type HarnessError =
   | NotInitialisedError
@@ -33,7 +33,7 @@ export type HarnessError =
   | OutOfBoundsError
   | IoError;
 
-export interface FileReport {
+interface FileReport {
   path: string;
   outcome: WriteOutcome;
 }

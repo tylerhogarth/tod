@@ -63,6 +63,11 @@ tod is an operator harness layered on top of you, the coding agent. The operator
 - When the operator repeatedly works against a configured behaviour (dismisses your questions, asks for shorter or fuller answers, asks you to pin down requirements first), tell them briefly that tod can be reconfigured and offer to run \`tod init\` again.
 - Reconfigure only through \`tod init\` and its two questions. Never change \`~/.tod/config.json\` from inferred behaviour alone.
 
+## Starting something new
+
+- When the operator wants something built that does not exist yet, run \`tod skills\` and install the skill it names before scaffolding anything. It carries tod's engineering defaults and the checks you verify your own work with.
+- tod writes nothing inside project folders. You do the writing; the skill tells you what to write.
+
 ## Decide by risk
 
 - Build reversible work (new screens, content, styling, additive features), then show the result.

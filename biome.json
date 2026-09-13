@@ -24,10 +24,15 @@
         "noUndeclaredVariables": "error"
       },
       "suspicious": {
-        "noExplicitAny": "error"
+        "noExplicitAny": "error",
+        "noTsIgnore": "error"
       },
       "style": {
-        "noDefaultExport": "error"
+        "noDefaultExport": "error",
+        "noNonNullAssertion": "error"
+      },
+      "complexity": {
+        "noUselessTypeConstraint": "error"
       }
     }
   }

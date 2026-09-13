@@ -42,9 +42,20 @@ tod sync     # repair tod-managed content after any damage
 tod work     # record and update features, bugs, tasks (agent-facing)
 tod log      # append to the activity log (agent-facing)
 tod config   # read or change settings such as communication style
+tod skills   # print the command that installs tod's agent skills (agent-facing)
 ```
 
 Every command is non-interactive and idempotent, refuses to write outside `~/.agents/`, `~/.claude/`, and `~/.tod/`, and reports exactly what it changed.
+
+## The paved road
+
+tod has opinions about how software gets built, not just about process. Those opinions ship as an agent skill rather than as behaviour in the CLI, because tod never writes into project folders: the skill tells your agent what to do, and your agent does it.
+
+`tod skills` prints the command that installs the skill, pinned to the release tag matching your installed tod. Skill and CLI therefore never disagree.
+
+When you ask for something new, the agent scaffolds it on a known-good stack (Bun, TypeScript, React with Vite, PostgreSQL with Prisma, Zod, Vitest, Playwright, Biome), gives the project two verification commands, and configures the compiler and linter so unsafe code fails a check rather than relying on the agent to remember a rule.
+
+These are defaults, not constraints. Ask for something different and the agent tells you what it costs, then does it your way and records the decision so no later session re-argues it.
 
 ## Supported agents
 
@@ -54,10 +65,11 @@ Any agent that reads the global `~/.agents/AGENTS.md` works with zero configurat
 
 ```sh
 bun install
-bun run check   # typecheck + lint + tests
+bun run check        # fast loop: typecheck, lint, tests
+bun run check:full   # complete gate: adds build and dead-code analysis
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [contributor documentation](docs/README.md) for how tod works, its core rules, and the templates and skills it ships.
 
 ## Licence
 
