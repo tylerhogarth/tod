@@ -9,7 +9,7 @@ const packageJson = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"))
 describe("package metadata", () => {
   test("publishes as tod-ai with a tod binary from the node bundle", () => {
     expect(packageJson.name).toBe("tod-ai");
-    expect(packageJson.bin.tod).toBe("./dist/cli.js");
+    expect(packageJson.bin.tod).toBe("dist/cli.js");
     expect(packageJson.files).toEqual(["dist"]);
     expect(packageJson.license).toBe("MIT");
     expect(packageJson.scripts.prepublishOnly).toContain("check:full");
