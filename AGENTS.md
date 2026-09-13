@@ -17,7 +17,6 @@ An operator harness CLI for coding agents, built with Bun and TypeScript. There 
 - Filesystem write allowlist: `src/boundary.ts`
 - Agent-facing error format and exit codes: `src/output.ts`
 - Published agent skills: `skills/`
-- Active spec and plan: `project/tod-v0.2/`
 
 ## Agent-facing CLI
 
