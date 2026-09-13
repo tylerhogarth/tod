@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "tod": "./dist/cli.js"
+    "tod": "dist/cli.js"
   },
   "files": [
     "dist"
