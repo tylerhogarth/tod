@@ -7,6 +7,7 @@ tod ships four kinds of text that an agent reads. Three are written by the CLI i
 | Marker block | `src/template.ts` | Global instruction files | tod, on `init` and `sync` |
 | Seed state files | `src/harness.ts` | `~/.tod/` | tod, on first `init` only |
 | Onboarding script | `src/commands/init.ts` | Standard output | tod, on every `init` |
+| Operator hints | `src/hints.ts` | Standard output, one per `tod hint` | tod, cursor kept in `~/.tod/hints.json` |
 | `tod-create-project` skill | `skills/` | The agent's skills folder | The agent, via `npx skills add` |
 
 ## The marker block
@@ -15,20 +16,19 @@ The block is the body between `<!-- tod:begin ... -->` and `<!-- tod:end -->` in
 
 The block is an operating layer, not documentation. Its sections, in order:
 
-1. Tod persona. The agent presents as Tod, a concise product engineer.
-2. Session start. Ask whether the operator is building with Tod today; if yes, read `~/.tod/operator.md` first.
+1. Tod. The operator's whole team in one. Product decides what, engineering decides how as trade-offs, delivery decides how much now, in slices, with scope rather than time as the constraint.
+2. Session start. Never ask the operator to opt in. Respond as Tod from the first message that describes product work, work normally otherwise, read `~/.tod/operator.md`, and open with the line `tod hint` prints.
 3. Precedence. Operator and project instructions win over the block.
 4. The operator is non-technical. Make engineering calls; surface only decisions that change what the product does.
 5. Requirement gathering and response detail. The two configured lines.
-6. Reconfiguration. Offer `tod init` when the operator repeatedly works against a setting; never change config from inferred behaviour.
-7. Starting something new. Run `tod skills` and install the skill before scaffolding anything.
-8. Decide by risk. Build reversible work and show it; wait for a yes on anything hard to reverse.
-9. Slice the work. One finishable slice at a time, each ending in something the operator can check.
-10. Show your work. Evidence the operator can check without reading code.
-11. Writing style. The house style for operator-facing prose.
-12. Work tracking. Use `tod work`, `tod log`, and `tod status`; never edit files.
-13. Git safety. A branch per feature and fix, explained without git vocabulary.
-14. tod-managed files. What never to hand-edit, and that `operator.md` is the one exception.
+6. Reconfiguration. Apply a direct instruction such as "Tod, be less wordy" at once through `tod config set`; offer to adjust when the operator works against a setting without saying so; never change config from inferred behaviour.
+7. Decide by risk. Build reversible work and show it; wait for a yes on anything hard to reverse.
+8. Slice the work. One finishable slice at a time, each ending in something the operator can check. Growth mid-slice becomes the next slice.
+9. Show your work. Evidence the operator can check without reading code.
+10. Writing style. The house style for operator-facing prose.
+11. Work tracking. Use `tod work`, `tod log`, and `tod status`; never edit files.
+12. Git safety. A branch per feature and fix, explained without git vocabulary.
+13. tod-managed files. What never to hand-edit, and that `operator.md` is the one exception.
 
 Changing the block is the highest-leverage and highest-risk edit in the repository. Every operator's every session loads it. `tests/template.test.ts` guards its content by section, its size across every configuration, and its punctuation.
 
@@ -52,6 +52,12 @@ tod sync
 ```
 
 The script is a constant in `src/commands/init.ts`, so every operator gets the same onboarding.
+
+## Operator hints
+
+`HINTS` in `src/hints.ts` is an ordered list of one-sentence reminders that the operator can steer Tod in plain language, such as asking him to be less wordy. `tod hint` prints the next one wrapped as an italic markdown line, advances a cursor in `~/.tod/hints.json`, and wraps at the end. The block tells the agent to run it once when Tod becomes active and open its first reply with the line verbatim.
+
+Every phrase a hint quotes must be one the block tells the agent to honour. `tests/hint.test.ts` checks that coupling, along with sentence length, the absence of dashes and tool internals, cycling order, and the cursor file.
 
 ## The tod-create-project skill
 
@@ -119,8 +125,13 @@ npx skills add tylerhogarth/tod#v<version> --skill tod-create-project -g -y
 
 The version is tod's own, read from `package.json`. The `#v<version>` fragment pins the install to the release tag, so an agent on tod 0.2.0 gets the skill exactly as it was at `v0.2.0`. Skill and CLI can therefore never disagree.
 
+tod never runs that command. It detects whether each skill is present by checking for `~/.agents/skills/<name>/SKILL.md`, which is where the skills tooling places a global install before linking it into agent-specific folders. `tod init` and `tod sync` append one line per skill to their report, `installed` or `missing` with the command, and the onboarding script tells the agent to install anything missing before running the wizard. `tod skills` prints the same status on demand.
+
+The instruction block carries no pointer to the skill. Once installed, the skill's own trigger-phrase description routes the agent to it, so a block section would be a duplicate that costs context on every turn.
+
 Consequences for contributors:
 
 1. Every published release must carry a matching `v<version>` git tag, or the pinned install fails to resolve. The release workflow enforces that the tag matches `package.json`.
-2. `tod skills` performs no network access, no installation, and no write. Printing is the whole feature. If the tag does not resolve, the skill tells the agent to report it rather than install from a branch.
+2. `tod skills` performs no network access, no installation, and no write. Reporting is the whole feature. If the tag does not resolve, the output tells the agent to report it rather than install from a branch.
 3. The repository slug is parsed from the `repository.url` field in `package.json`. An unrecognisable URL is an error, not a guess.
+4. The skill list and detection live in `src/skills.ts`; the command in `src/commands/skills.ts` only renders.
