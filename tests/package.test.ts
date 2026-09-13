@@ -12,8 +12,28 @@ describe("package metadata", () => {
     expect(packageJson.bin.tod).toBe("./dist/cli.js");
     expect(packageJson.files).toEqual(["dist"]);
     expect(packageJson.license).toBe("MIT");
-    expect(packageJson.scripts.prepublishOnly).toContain("check");
-    expect(packageJson.scripts.prepublishOnly).toContain("build");
+    expect(packageJson.scripts.prepublishOnly).toContain("check:full");
+  });
+
+  test("verification splits into a fast loop and a complete gate", () => {
+    // The fast loop is run constantly while working, so it must stay quick;
+    // the build and dead-code analysis belong to the gate.
+    expect(packageJson.scripts.check).toContain("typecheck");
+    expect(packageJson.scripts.check).toContain("lint");
+    expect(packageJson.scripts.check).toContain("test");
+    expect(packageJson.scripts.check).not.toContain("build");
+    expect(packageJson.scripts["check:full"]).toContain("check");
+    expect(packageJson.scripts["check:full"]).toContain("build");
+    expect(packageJson.scripts["check:full"]).toContain("knip");
+  });
+
+  test("the compiler enforces the paved-road invariants", () => {
+    const tsconfig = JSON.parse(
+      readFileSync(join(ROOT, "tsconfig.json"), "utf8").replace(/^\s*\/\/.*$/gm, ""),
+    );
+    for (const flag of ["strict", "noUncheckedIndexedAccess", "exactOptionalPropertyTypes"]) {
+      expect(tsconfig.compilerOptions[flag]).toBe(true);
+    }
   });
 
   test("the node bundle builds and runs without bun", () => {

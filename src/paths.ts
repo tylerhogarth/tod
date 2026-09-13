@@ -20,6 +20,8 @@ export interface TodPaths {
   operatorFile: string;
   workFile: string;
   logFile: string;
+  /** Cursor for `tod hint`; absent until the first hint is shown. */
+  hintFile: string;
 }
 
 export function todPaths(home: string = resolveHome()): TodPaths {
@@ -31,6 +33,7 @@ export function todPaths(home: string = resolveHome()): TodPaths {
     operatorFile: join(todDir, "operator.md"),
     workFile: join(todDir, "work.json"),
     logFile: join(todDir, "log.jsonl"),
+    hintFile: join(todDir, "hints.json"),
   };
 }
 

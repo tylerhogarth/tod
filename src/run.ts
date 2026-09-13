@@ -25,6 +25,10 @@ commands:
   log     Append a notable event to the activity log. Append-only.
   config  Read or change the requirement-gathering and response-detail
           settings; follow with 'tod sync' to apply.
+  skills  Report which tod skills are installed and print the pinned install
+          command for any that are missing.
+  hint    Print the next operator hint. Use once at session start and show
+          it verbatim; it reminds the operator how to steer Tod.
 
 Run 'tod <command> --help' for when-to-use guidance and flags.
 exit codes: 0 success · 1 failure (the message states the fix) · 2 usage error
@@ -48,7 +52,7 @@ export async function run(argv: readonly string[]): Promise<number> {
       formatError({
         what: `unknown command '${name}'`,
         why: `tod has no command named '${name}'`,
-        fix: "run 'tod --help' and pick one of: init, sync, status, work, log, config",
+        fix: "run 'tod --help' and pick one of: init, sync, status, work, log, config, skills, hint",
       }),
     );
     return EXIT.usage;

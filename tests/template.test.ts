@@ -21,7 +21,7 @@ describe("renderBlock content", () => {
   test("carries every required section", () => {
     for (const heading of [
       "# tod: operator harness",
-      "## Tod persona",
+      "## Tod",
       "## Session start",
       "## Precedence",
       "## The operator is non-technical",
@@ -41,20 +41,27 @@ describe("renderBlock content", () => {
   });
 
   test("explains what tod is and maps requests to tod commands and skills", () => {
-    expect(block).toContain("operator harness layered on top of you");
-    expect(block).toContain("operating layer, not documentation");
-    expect(block).toContain("tod CLI command or tod skill");
+    expect(block).toContain("operating model layered over you");
+    expect(block).toContain("instructions, not documentation");
+    expect(block).toContain("tod command or skill");
   });
 
-  test("defines the Tod persona", () => {
-    expect(block).toContain("lively product engineer");
-    expect(block).toContain("concise and friendly");
-    expect(block).toContain("interact as Tod");
+  test("defines Tod as the whole team holding product, engineering, and delivery", () => {
+    expect(block).toContain("whole team in one: product, engineering, and delivery");
+    expect(block).toContain("concise, friendly, direct");
+    expect(block).toContain("Every choice is a trade-off");
+    expect(block).toContain("Time is not a dimension; scope is");
+    expect(block).toContain(
+      "Product decides what, engineering decides how, delivery decides how much now",
+    );
   });
 
-  test("offers tod per session instead of assuming it is active", () => {
-    expect(block).toContain("Are we building with Tod today?");
-    expect(block).toContain("operate normally");
+  test("activates seamlessly on product work and shows a hint, never asking to opt in", () => {
+    expect(block).toContain("Never ask whether the operator wants tod");
+    expect(block).toContain("respond as Tod from that message on");
+    expect(block).toContain("work normally");
+    expect(block).toContain("run `tod hint`");
+    expect(block).toContain("verbatim");
   });
 
   test("defers to higher-priority instructions", () => {
@@ -62,28 +69,29 @@ describe("renderBlock content", () => {
   });
 
   test("assumes a non-technical operator at every setting", () => {
-    expect(block).toContain("non-technical at every setting");
-    expect(block).toContain("non-technical client");
-    expect(block).toContain("without jargon");
+    expect(block).toContain("Assume this at every setting");
+    expect(block).toContain("consequences, trade-offs, and product impact");
+    expect(block).toContain("No jargon");
     expect(block).toContain("define it in one plain sentence");
-    expect(block).toContain("file paths, tool names, and internal mechanics");
+    expect(block).toContain("file paths, tool names, and internals");
   });
 
-  test("pairs questions with recommendations at every setting", () => {
-    expect(block).toContain("pair each question with a recommendation");
+  test("pairs every question with a recommendation", () => {
+    expect(block).toContain("Pair each question with a recommendation");
   });
 
-  test("gates hard-to-reverse work behind an explicit yes", () => {
+  test("decides by reversibility and waits on risky work", () => {
     expect(block).toContain("then show the result");
     expect(block).toContain("money, accounts, or privacy");
     expect(block).toContain("wait for a yes");
     expect(block).toContain("treat it as risky");
   });
 
-  test("slices work into visible, finishable pieces", () => {
-    expect(block).toContain("one clear, finishable slice at a time");
+  test("slices work, ends each slice in something checkable, and holds scope", () => {
+    expect(block).toContain("One finishable slice at a time");
     expect(block).toContain("ordered list of slices");
     expect(block).toContain("something the operator can see and check");
+    expect(block).toContain("Scope creep is the failure mode");
   });
 
   test("requires operator-checkable evidence before calling work done", () => {
@@ -92,17 +100,24 @@ describe("renderBlock content", () => {
     expect(block).toContain("show its check passing");
   });
 
-  test("makes reconfiguration discoverable and never silent", () => {
-    expect(block).toContain("tod can be reconfigured");
+  test("applies direct operator instructions at once and never reconfigures silently", () => {
+    expect(block).toContain('"Tod, be less wordy"');
+    expect(block).toContain("applied at once with `tod config set` and `tod sync`");
     expect(block).toContain("`tod init` again");
     expect(block).toContain("Never change `~/.tod/config.json` from inferred behaviour");
   });
 
   test("directs the agent to the deterministic CLI, never hand-edits", () => {
-    for (const command of ["tod status", "tod work", "tod log", "tod config", "tod sync"]) {
+    for (const command of ["`tod work`", "`tod log`", "`tod status`", "`tod sync`", "`tod hint`"]) {
       expect(block).toContain(command);
     }
     expect(block).toContain("Never hand-edit");
+    expect(block).toContain("keep it truthful");
+  });
+
+  test("does not duplicate the skill's own routing; the installed skill carries it", () => {
+    expect(block).not.toContain("Starting something new");
+    expect(block).not.toContain("tod skills");
   });
 
   test("enforces the git workflow in builder terms", () => {
@@ -112,10 +127,10 @@ describe("renderBlock content", () => {
     expect(block).toContain("roll back to the last good commit");
   });
 
-  test("sets the operator-facing writing rules", () => {
+  test("states the writing style it follows itself", () => {
     expect(block).toContain("Never use em dashes");
     expect(block).toContain("Lead with the answer");
-    expect(block).toContain("one idea per sentence");
+    expect(block).toContain("One idea per sentence");
     expect(block).toContain("international English");
   });
 

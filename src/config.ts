@@ -4,7 +4,7 @@ import { readFileIfExists } from "./fsx.ts";
 
 const scale = z.literal([1, 2, 3, 4, 5]);
 
-export const configSchema = z.object({
+const configSchema = z.object({
   version: z.literal(2),
   /** 1 eager (assume and build) to 5 pushy (explore requirements together first). */
   requirementGathering: scale,
