@@ -68,6 +68,7 @@ describe("formatHint", () => {
 describe("tod hint", () => {
   test("prints hints in order, wraps, and persists the cursor under tod's boundary", () => {
     const home = makeHome();
+    expect(runCli(home, "init").code).toBe(0);
     const seen: string[] = [];
     for (let i = 0; i < HINTS.length + 1; i += 1) {
       const { code, stdout } = runCli(home, "hint");
@@ -80,15 +81,18 @@ describe("tod hint", () => {
     expect(cursor).toEqual({ version: 1, next: 1 });
   });
 
-  test("works before tod init and creates nothing but the cursor file", () => {
+  test("refuses before tod init and creates nothing, so sync cannot skip onboarding", () => {
     const home = makeHome();
-    expect(runCli(home, "hint").code).toBe(0);
-    expect(existsSync(join(home, ".tod", "hints.json"))).toBe(true);
-    expect(existsSync(join(home, ".tod", "config.json"))).toBe(false);
+    const { code, stderr } = runCli(home, "hint");
+    expect(code).toBe(1);
+    expect(stderr).toContain("not initialised");
+    expect(stderr).toContain("fix: run 'tod init' first");
+    expect(existsSync(join(home, ".tod"))).toBe(false);
   });
 
   test("stops with a fix when the cursor file is malformed", () => {
     const home = makeHome();
+    expect(runCli(home, "init").code).toBe(0);
     runCli(home, "hint");
     const path = join(home, ".tod", "hints.json");
     writeFileSync(path, "{ not json");

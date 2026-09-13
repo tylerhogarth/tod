@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import pkg from "../package.json";
+import { agentTargets } from "./paths.ts";
 
 /**
  * tod's published skills and how an agent installs them.
@@ -49,12 +50,17 @@ export function installCommand(slug: string, version: string, skill: string): st
 }
 
 /**
- * Where the skills tooling puts a global install: the canonical copy lives
- * under `~/.agents/skills/` and agent-specific folders link to it. Presence
- * of the SKILL.md is the installed check; tod does not read its contents.
+ * A skill counts as installed when its SKILL.md sits in the skills folder of
+ * any agent target. The skills tooling keeps a canonical copy under
+ * `~/.agents/skills/` and links agent folders such as `~/.claude/skills/` to
+ * it, but copy mode and older versions install per agent only, so checking
+ * one location would report a present skill as missing on every run. tod
+ * does not read the file's contents.
  */
-function installedSkillFile(home: string, name: string): string {
-  return join(home, ".agents", "skills", name, "SKILL.md");
+function isSkillInstalled(home: string, name: string): boolean {
+  return agentTargets(home).some((target) =>
+    existsSync(join(target.configDir, "skills", name, "SKILL.md")),
+  );
 }
 
 export interface SkillStatus {
@@ -70,7 +76,7 @@ export function skillStatuses(home: string): SkillStatus[] {
   return SKILLS.map((skill) => ({
     name: skill.name,
     summary: skill.summary,
-    installed: existsSync(installedSkillFile(home, skill.name)),
+    installed: isSkillInstalled(home, skill.name),
     command: slug === undefined ? undefined : installCommand(slug, pkg.version, skill.name),
   }));
 }

@@ -125,7 +125,7 @@ npx skills add tylerhogarth/tod#v<version> --skill tod-create-project -g -y
 
 The version is tod's own, read from `package.json`. The `#v<version>` fragment pins the install to the release tag, so an agent on tod 0.2.0 gets the skill exactly as it was at `v0.2.0`. Skill and CLI can therefore never disagree.
 
-tod never runs that command. It detects whether each skill is present by checking for `~/.agents/skills/<name>/SKILL.md`, which is where the skills tooling places a global install before linking it into agent-specific folders. `tod init` and `tod sync` append one line per skill to their report, `installed` or `missing` with the command, and the onboarding script tells the agent to install anything missing before running the wizard. `tod skills` prints the same status on demand.
+tod never runs that command. It treats a skill as installed when its SKILL.md is in the skills folder of any agent target, so `~/.agents/skills/` and `~/.claude/skills/` both count. The skills tooling links agent folders to a canonical copy in symlink mode, but copy mode and older versions install per agent only. `tod init` and `tod sync` append one line per skill to their report, `installed` or `missing` with the command, and the onboarding script tells the agent to install anything missing before running the wizard. `tod skills` prints the same status on demand.
 
 The instruction block carries no pointer to the skill. Once installed, the skill's own trigger-phrase description routes the agent to it, so a block section would be a duplicate that costs context on every turn.
 

@@ -99,6 +99,16 @@ describe("tod skills", () => {
     expect(stdout).not.toContain("npx skills add");
   });
 
+  test("accepts a per-agent install when the tooling did not link a canonical copy", () => {
+    const home = mkdtempSync(join(tmpdir(), "tod-skills-"));
+    const installed = join(home, ".claude", "skills", "tod-create-project");
+    mkdirSync(installed, { recursive: true });
+    writeFileSync(join(installed, "SKILL.md"), "---\nname: tod-create-project\n---\n");
+    const { code, stdout } = runCli(home, "skills");
+    expect(code).toBe(0);
+    expect(stdout).toContain("installed tod-create-project");
+  });
+
   test("init and sync report a missing skill with its install command, and installed once present", () => {
     const home = mkdtempSync(join(tmpdir(), "tod-skills-"));
     mkdirSync(join(home, ".agents"), { recursive: true });

@@ -12,7 +12,7 @@ Use once at the start of a session when tod is active, and show the printed
 line to the operator verbatim as the opening line of your first reply. Hints
 remind the operator that they can steer Tod in plain language. Each call
 advances to the next hint and wraps at the end, so the operator sees them in
-turn. Writes only the hint cursor in ~/.tod/.
+turn. Writes only the hint cursor in ~/.tod/. Requires 'tod init' first.
 `,
   execute: async (args) => {
     const unknown = args.find((arg) => arg.startsWith("-"));
@@ -29,7 +29,7 @@ turn. Writes only the hint cursor in ~/.tod/.
 
     const home = resolveHome();
     const paths = todPaths(home);
-    const result = nextHint(paths.hintFile, defaultAllowedRoots(home));
+    const result = nextHint(paths, defaultAllowedRoots(home));
     return result.match({
       ok: (text) => {
         process.stdout.write(`${formatHint(text)}\n`);

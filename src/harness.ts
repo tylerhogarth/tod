@@ -24,7 +24,7 @@ Nothing recorded yet.
 
 const seedWorkState = `${JSON.stringify({ version: 1, nextId: 1, projects: [] }, null, 2)}\n`;
 
-class NotInitialisedError extends TaggedError("NotInitialised")<{ todDir: string }> {}
+export class NotInitialisedError extends TaggedError("NotInitialised")<{ todDir: string }> {}
 
 export type HarnessError =
   | NotInitialisedError

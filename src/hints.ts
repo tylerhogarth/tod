@@ -1,6 +1,9 @@
+import { existsSync } from "node:fs";
 import { Result, TaggedError } from "better-result";
 import { z } from "zod";
 import { type IoError, type OutOfBoundsError, readFileIfExists, writeFileAtomic } from "./fsx.ts";
+import { NotInitialisedError } from "./harness.ts";
+import type { TodPaths } from "./paths.ts";
 
 /**
  * Operator hints: short reminders that the operator can steer Tod in plain
@@ -78,11 +81,19 @@ export function formatHint(hint: string): string {
 /**
  * Returns the next hint and advances the cursor. The cursor is stored modulo
  * the list length, so removing hints never leaves it out of range.
+ *
+ * Refuses before `tod init`: creating the cursor file would also create
+ * `~/.tod/`, which is what `installHarness` uses to tell a first install
+ * from a repair, and a later `tod sync` would then skip onboarding.
  */
 export function nextHint(
-  path: string,
+  paths: TodPaths,
   roots: readonly string[],
-): Result<string, HintStateError | OutOfBoundsError | IoError> {
+): Result<string, NotInitialisedError | HintStateError | OutOfBoundsError | IoError> {
+  if (!existsSync(paths.configFile)) {
+    return Result.err(new NotInitialisedError({ todDir: paths.todDir }));
+  }
+  const path = paths.hintFile;
   const loaded = loadHintState(path);
   if (loaded.isErr()) {
     return Result.err(loaded.error);

@@ -17,7 +17,7 @@ tod has two audiences and one runtime. The operator is a non-technical person bu
   operator.md          # prose memory of the operator, edited by agents
   work.json            # projects and work items, edited only through 'tod work'
   log.jsonl            # append-only activity log, edited only through 'tod log'
-  hints.json           # cursor for 'tod hint', created on first use rather than by init
+  hints.json           # cursor for 'tod hint', created on first use after init
 ```
 
 An agent's instruction file is only touched when its config folder exists. A machine with Claude Code installed but no `~/.agents/` gets one block, not two, and the skipped agent is named in the output.
