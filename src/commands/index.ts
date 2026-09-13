@@ -1,4 +1,5 @@
 import { config } from "./config.ts";
+import { hint } from "./hint.ts";
 import { init } from "./init.ts";
 import { log } from "./log.ts";
 import { skills } from "./skills.ts";
@@ -20,4 +21,5 @@ export const commands: Readonly<Record<string, Command>> = {
   log,
   config,
   skills,
+  hint,
 };

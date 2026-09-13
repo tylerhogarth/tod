@@ -1,75 +1,41 @@
 import pkg from "../../package.json";
 import { EXIT, formatError } from "../output.ts";
+import { resolveHome } from "../paths.ts";
+import { type SkillStatus, skillStatuses, skillTag } from "../skills.ts";
 import type { Command } from "./index.ts";
 
-/**
- * Skills ship from the tod repository, not from the npm package, so an agent
- * installs them straight from git. Pinning to the tag that matches the running
- * version keeps the skill and the CLI in step: an agent on tod 0.2.0 gets the
- * skill as it was at v0.2.0. This command only prints; installing is the
- * agent's job, and tod writes nothing outside its own boundary.
- */
-
-interface SkillSummary {
-  name: string;
-  summary: string;
-}
-
-const SKILLS: readonly SkillSummary[] = [
-  {
-    name: "tod-create-project",
-    summary: "Scaffold a new project on tod's engineering paved road, with deterministic checks.",
-  },
-];
-
-/** `git+https://github.com/owner/repo.git` to `owner/repo`. */
-export function repositorySlug(url: string): string | undefined {
-  const match = /github\.com[/:]([^/]+)\/(.+?)(?:\.git)?$/.exec(url.trim());
-  const owner = match?.[1];
-  const name = match?.[2];
-  return owner === undefined || name === undefined ? undefined : `${owner}/${name}`;
-}
-
-/** The release tag carrying the skills for a given tod version. */
-export function skillTag(version: string): string {
-  return `v${version}`;
-}
-
-export function installCommand(slug: string, version: string, skill: string): string {
-  return `npx skills add ${slug}#${skillTag(version)} --skill ${skill} -g -y`;
-}
-
-function render(slug: string, version: string): string {
-  const lines = [
-    `tod ${version} skills, pinned to tag ${skillTag(version)}.`,
-    "",
-    "Install with:",
-    "",
-  ];
-  for (const skill of SKILLS) {
-    lines.push(`  ${installCommand(slug, version, skill.name)}`);
+function render(version: string, statuses: readonly SkillStatus[]): string {
+  const missing = statuses.filter((skill) => !skill.installed);
+  const lines = [`tod ${version} skills, pinned to tag ${skillTag(version)}.`, ""];
+  if (missing.length === 0) {
+    lines.push("All tod skills are installed; nothing to do.");
+  } else {
+    lines.push("Install the missing skills with:", "");
+    for (const skill of missing) {
+      lines.push(`  ${skill.command}`);
+    }
   }
-  lines.push("", "available skills:");
-  for (const skill of SKILLS) {
-    lines.push(`  ${skill.name}  ${skill.summary}`);
+  lines.push("", "skills:");
+  for (const skill of statuses) {
+    lines.push(`  ${skill.installed ? "installed" : "missing  "} ${skill.name}  ${skill.summary}`);
   }
   lines.push(
     "",
     "The tag pins the skill to this tod version, so the two never disagree.",
     "This command prints only: it installs nothing and writes nothing.",
     "If the install fails on an unresolved tag, the release was not tagged; report",
-    `that rather than installing from a branch.`,
+    "that rather than installing from a branch.",
   );
   return `${lines.join("\n")}\n`;
 }
 
 export const skills: Command = {
-  help: `tod skills: print the command that installs tod's agent skills
+  help: `tod skills: report tod's agent skills and how to install any that are missing
 
-Use when the operator starts something new and you need tod's paved-road
-guidance, or when you are unsure whether a tod skill covers the task. Prints an
-install command pinned to the tag matching this tod version, so the skill and
-the CLI agree. Installs nothing, writes nothing, and makes no network request.
+Use when 'tod init' or 'tod sync' reports a missing skill, or when you are
+unsure whether a tod skill is installed. Prints an install command pinned to
+the tag matching this tod version, so the skill and the CLI agree. Installs
+nothing, writes nothing, and makes no network request.
 `,
   execute: async (args) => {
     const unknown = args.find((arg) => arg.startsWith("-"));
@@ -84,8 +50,8 @@ the CLI agree. Installs nothing, writes nothing, and makes no network request.
       return EXIT.usage;
     }
 
-    const slug = repositorySlug(pkg.repository.url);
-    if (slug === undefined) {
+    const statuses = skillStatuses(resolveHome());
+    if (statuses.some((skill) => skill.command === undefined)) {
       process.stderr.write(
         formatError({
           what: "cannot determine the tod repository",
@@ -96,7 +62,7 @@ the CLI agree. Installs nothing, writes nothing, and makes no network request.
       return EXIT.failure;
     }
 
-    process.stdout.write(render(slug, pkg.version));
+    process.stdout.write(render(pkg.version, statuses));
     return EXIT.ok;
   },
 };

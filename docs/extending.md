@@ -65,8 +65,8 @@ Every operator picks the change up on their next `tod sync`. There is no migrati
 1. Create `skills/<name>/SKILL.md` with frontmatter whose `name` matches the directory and whose `description` is in trigger-phrase form.
 2. Keep the body short enough to act on alone. Put detail in `references/` and templates in `assets/`.
 3. Carry no version pins, no install commands, no absolute paths, and no agent-specific tool names. The guard tests in `tests/skills.test.ts` reject the first three across every file in the directory; review the fourth by hand.
-4. Add the skill to the `SKILLS` list in `src/commands/skills.ts` so `tod skills` prints its install command.
-5. If the block should route agents to the skill, add a pointer to `renderBlock` and update the template tests.
+4. Add the skill to the `SKILLS` list in `src/skills.ts`. `tod init`, `tod sync`, and `tod skills` then report whether it is installed and print its install command.
+5. Do not add a pointer to the block. The skill's description routes the agent once it is installed.
 
 The skill is only installable at a release tag, so a skill change reaches operators on the next release, not on merge.
 

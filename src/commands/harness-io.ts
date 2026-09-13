@@ -1,6 +1,7 @@
 import type { HarnessError, InstallReport } from "../harness.ts";
 import { type AgentError, formatError } from "../output.ts";
 import { resolveHome } from "../paths.ts";
+import { renderSkillLines, skillStatuses } from "../skills.ts";
 
 export function tildify(path: string, home: string = resolveHome()): string {
   return path.startsWith(home) ? `~${path.slice(home.length)}` : path;
@@ -49,6 +50,9 @@ export function renderReport(report: InstallReport, home: string, summary: strin
   for (const skipped of report.skippedAgents) {
     lines.push(`skipped   ${skipped}: config folder not found, no block installed`);
   }
+  // Skills are installed by the agent, not by tod; reporting them here means
+  // any init or sync run tells the agent what is missing and how to fix it.
+  lines.push(...renderSkillLines(skillStatuses(home)));
   lines.push(summary);
   return `${lines.join("\n")}\n`;
 }

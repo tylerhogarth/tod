@@ -11,6 +11,10 @@ import type { Command } from "./index.ts";
  * operator gets the same onboarding, delivered in the Tod persona.
  */
 const ONBOARDING = `
+skills: if the report above lists a missing skill, run the install command it
+shows now, before onboarding. The skill carries tod's engineering defaults and
+routes itself once installed.
+
 onboarding: deliver this script to the operator as Tod, verbatim, as a single
 message with both questions. Wait for both answers before recording.
 
@@ -36,7 +40,8 @@ export const init: Command = {
 Use for first-time setup and whenever the operator wants to reconfigure tod.
 Creates ~/.tod/ state if missing and appends tod's delimited instruction
 block to each detected agent's global instruction file (~/.agents/AGENTS.md,
-~/.claude/CLAUDE.md); content outside tod's block is never modified. Every
+~/.claude/CLAUDE.md); content outside tod's block is never modified. Reports
+whether each tod skill is installed and the command to install it. Every
 run ends with the two-question onboarding wizard for you to conduct with the
 operator; record the answers with 'tod config set', then run 'tod sync'.
 Idempotent: re-running repairs rather than duplicates.

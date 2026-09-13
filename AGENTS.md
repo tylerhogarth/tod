@@ -49,7 +49,7 @@ An operator harness CLI for coding agents, built with Bun and TypeScript. There 
 ## Skills
 
 - tod writes nothing into project folders. Anything the agent must do inside a project is published as a skill under `skills/`, and the agent does the writing.
-- Skills are installed from this repository pinned to the release tag matching the installed tod version, so the skill and the CLI never disagree. `tod skills` prints the command; it installs nothing.
+- Skills are installed from this repository pinned to the release tag matching the installed tod version, so the skill and the CLI never disagree. `tod init`, `tod sync`, and `tod skills` report whether each skill is installed and print the command; tod itself installs nothing.
 - Every release must carry a matching `v<version>` git tag, or the pinned install cannot resolve.
 - Skills recommend tools and state invariants. They carry no version pins and no install commands, because the agent determines current install steps and pinned commands go stale on every upstream release.
 

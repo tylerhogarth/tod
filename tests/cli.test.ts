@@ -32,7 +32,7 @@ describe("tod --help", () => {
   test("exits 0 and lists every command with when-to-use guidance", () => {
     const { code, stdout } = runCli("--help");
     expect(code).toBe(0);
-    for (const command of ["init", "sync", "status", "work", "log", "config", "skills"]) {
+    for (const command of ["init", "sync", "status", "work", "log", "config", "skills", "hint"]) {
       expect(stdout).toContain(command);
     }
     expect(stdout).toContain("Use when");

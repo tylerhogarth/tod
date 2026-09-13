@@ -17,6 +17,7 @@ tod has two audiences and one runtime. The operator is a non-technical person bu
   operator.md          # prose memory of the operator, edited by agents
   work.json            # projects and work items, edited only through 'tod work'
   log.jsonl            # append-only activity log, edited only through 'tod log'
+  hints.json           # cursor for 'tod hint', created on first use rather than by init
 ```
 
 An agent's instruction file is only touched when its config folder exists. A machine with Claude Code installed but no `~/.agents/` gets one block, not two, and the skipped agent is named in the output.
@@ -35,10 +36,10 @@ sequenceDiagram
     A->>B: loads at session start
     B-->>A: persona, precedence, risk rules, commands to use
     A->>S: reads operator.md
+    A->>C: tod hint
+    C-->>A: one italic hint line for the operator
     A->>C: tod work add "X" --project app
     C->>S: writes work.json atomically
-    A->>C: tod skills
-    C-->>A: pinned install command for tod-create-project
     A->>O: reports in the operator's terms
 ```
 
@@ -57,6 +58,12 @@ flowchart TD
     commands --> log[log]
     commands --> config[config]
     commands --> skills[skills]
+    skills --> skillsmod[src/skills.ts]
+    init --> skillsmod
+    sync --> skillsmod
+    commands --> hint[hint]
+    hint --> hints[src/hints.ts]
+    hints --> fsx
     init --> harness[src/harness.ts]
     sync --> harness
     harness --> template[src/template.ts]
@@ -81,12 +88,14 @@ Each module has one job:
 4. `src/harness.ts` is the single implementation behind `init` and `sync`. It reads and validates everything first, then writes.
 5. `src/template.ts` renders the marker block body from a `Config`.
 6. `src/markers.ts` is a pure content transform: given a file's existing content and a block body, it returns the new content with exactly one block.
-7. `src/config.ts` and `src/work.ts` define the zod schemas for `config.json` and `work.json`, and the pure state transitions for work items.
-8. `src/fsx.ts` owns `writeFileAtomic`, the only way tod writes a file.
-9. `src/boundary.ts` owns the write allowlist and the containment check.
-10. `src/paths.ts` derives every path from one home root, and lists the agent targets.
-11. `src/output.ts` defines exit codes and the `what`, `why`, `fix` error shape.
-12. `src/commands/harness-io.ts` maps tagged errors to agent-facing errors and renders install reports.
+7. `src/hints.ts` holds the operator hint list and the cursor that cycles through it.
+8. `src/skills.ts` lists the published skills, builds the pinned install command, and detects whether each is installed.
+9. `src/config.ts` and `src/work.ts` define the zod schemas for `config.json` and `work.json`, and the pure state transitions for work items.
+10. `src/fsx.ts` owns `writeFileAtomic`, the only way tod writes a file.
+11. `src/boundary.ts` owns the write allowlist and the containment check.
+12. `src/paths.ts` derives every path from one home root, and lists the agent targets.
+13. `src/output.ts` defines exit codes and the `what`, `why`, `fix` error shape.
+14. `src/commands/harness-io.ts` maps tagged errors to agent-facing errors and renders install reports.
 
 ## The write pipeline
 

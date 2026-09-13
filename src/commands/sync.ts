@@ -10,7 +10,8 @@ export const sync: Command = {
 Use after tod-managed content was edited, deleted, or looks wrong, or after
 changing settings with 'tod config'. Only touches content inside tod's own
 marker blocks and tod-owned structural files; operator memory, work state,
-the log, and all content outside the markers are never modified. Idempotent.
+the log, and all content outside the markers are never modified. Reports any
+missing tod skill with its install command. Idempotent.
 `,
   execute: async () => {
     const home = resolveHome();

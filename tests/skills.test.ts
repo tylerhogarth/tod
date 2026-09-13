@@ -1,8 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
-import { installCommand, repositorySlug, skillTag } from "../src/commands/skills.ts";
+import { installCommand, repositorySlug, skillTag } from "../src/skills.ts";
 
 const ROOT = join(import.meta.dir, "..");
 const CLI = join(ROOT, "src", "cli.ts");
@@ -77,6 +85,37 @@ describe("tod skills", () => {
     expect(stdout).toContain(`#v${packageJson.version}`);
     expect(stdout).toContain("npx skills add");
     expect(stdout).toContain("tod-create-project");
+  });
+
+  test("reports the skill as installed once the skills tooling has placed it globally", () => {
+    const home = mkdtempSync(join(tmpdir(), "tod-skills-"));
+    const installed = join(home, ".agents", "skills", "tod-create-project");
+    mkdirSync(installed, { recursive: true });
+    writeFileSync(join(installed, "SKILL.md"), "---\nname: tod-create-project\n---\n");
+    const { code, stdout } = runCli(home, "skills");
+    expect(code).toBe(0);
+    expect(stdout).toContain("installed tod-create-project");
+    expect(stdout).toContain("nothing to do");
+    expect(stdout).not.toContain("npx skills add");
+  });
+
+  test("init and sync report a missing skill with its install command, and installed once present", () => {
+    const home = mkdtempSync(join(tmpdir(), "tod-skills-"));
+    mkdirSync(join(home, ".agents"), { recursive: true });
+    const init = runCli(home, "init");
+    expect(init.code).toBe(0);
+    expect(init.stdout).toContain(
+      "missing   skill tod-create-project: install with 'npx skills add",
+    );
+    expect(init.stdout).toContain("if the report above lists a missing skill");
+
+    const installed = join(home, ".agents", "skills", "tod-create-project");
+    mkdirSync(installed, { recursive: true });
+    writeFileSync(join(installed, "SKILL.md"), "---\nname: tod-create-project\n---\n");
+    const sync = runCli(home, "sync");
+    expect(sync.code).toBe(0);
+    expect(sync.stdout).toContain("installed skill tod-create-project");
+    expect(sync.stdout).not.toContain("missing   skill");
   });
 
   test("changes nothing on disk", () => {
